@@ -1,5 +1,7 @@
 class axi_m_collector extends uvm_component;
    
+   uvm_analysis_port #(axi_transfer) collector_ap;
+   
    `uvm_component_utils(axi_m_collector)
    
    function new(string name = "axi_m_collector",uvm_component parent);
@@ -8,6 +10,7 @@ class axi_m_collector extends uvm_component;
 
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
+      collector_ap = new("collector_ap",this);
    endfunction : build_phase
 
    virtual task run_phase(uvm_phase phase);
