@@ -1,0 +1,6 @@
+xrun(64): 19.03-s008: (c) Copyright 1995-2019 Cadence Design Systems, Inc.
+TOOL:	xrun(64)	19.03-s008: Started on Mar 25, 2024 at 13:16:58 IST
+xrun
+	--helpall
+xrun: *E,NOSOPT1: Unknown option (--helpall).
+TOOL:	xrun(64)	19.03-s008: Exiting on Mar 25, 2024 at 13:16:59 IST  (total: 00:00:01)

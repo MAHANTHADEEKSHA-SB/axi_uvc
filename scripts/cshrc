@@ -1,0 +1,84 @@
+#! /bin/csh
+setenv LM_LICENSE_FILE 5280@jasper
+# This sets the netlisting mode to analog
+setenv CDS_Netlisting_Mode "Analog"
+setenv CDS_LIC_FILE $LM_LICENSE_FILE
+# These unset any environment variables that have been previously set
+# These next two are for Red Hat Linux support
+# setenv LD_ASSUME_KERNEL 2.4.1
+setenv LANG en_US
+# Put in the correct path names to the software installs
+setenv INCA_64BIT
+setenv CDS_AUTO_64BIT INCLUDE:INCA
+setenv CDSHOME 
+setenv RCHOME 
+setenv ASSURAHOME 
+#setenv EXTHOME 
+setenv PVSHOME 
+setenv IUSHOME 
+setenv MMSIMHOME 
+setenv ENCOUNTERHOME 
+setenv LIBERATEHOME 
+setenv QRC_HOME 
+setenv INNOVUSHOME /tools/EDA/cadence/Innovus181
+setenv VIRTUOSOHOME /dev_02/tools/cadenceinstall/ICADVM201/
+setenv MODUSHOME /tools/EDA/cadence/Modus191
+setenv XCELIUMHOME /tools/EDA/cadence/XCelium1903
+
+setenv SSVHOME 
+setenv IUSHOME 
+setenv CONFORMAL 
+setenv ETSHOME 
+setenv ETHOME 
+setenv LECHOME 
+setenv AMSHOME $IUSHOME
+setenv JGHOME  
+setenv SPBHOME 
+
+setenv SIGHOME 
+
+setenv GENUSHOME /tools/EDA/cadence/GENUS181
+setenv CDS_AUTO_64BIT ALL
+setenv CDS_USE_PALETTE
+
+
+
+set path=($path ${INNOVUSHOME}/bin ${INNOVUSHOME}/share/bin ${INNOVUSHOME}/tools.lnx86/bin)
+set path=($path ${MODUSHOME}/bin ${MODUSHOME}/share/bin ${MODUSHOME}/tools.lnx86/bin)
+set path=($path ${VIRTUOSOHOME}/bin ${VIRTUOSOHOME}/dfII/bin )
+
+set path=($path ${ASSURAHOME}/bin ${ASSURAHOME}/share/bin ${ASSURAHOME}/tools.lnx86/bin)
+set path=($path ${LIBERATEHOME}/bin ${LIBERATEHOME}/share/bin ${LIBERATEHOME}/tools.lnx86/bin)
+set path=($path ${SSVHOME}/bin ${SSVHOME}/tools/bin ${SSVHOME}/tools/dfII/bin ${SSVHOME}/share/bin ${SSVHOME}/tools.lnx86/bin)
+set path=($path ${RCHOME}/bin ${RCHOME}/share/bin ${RCHOME}/tools.lnx86/bin)
+set path=($path ${JGHOME}/bin ${JGHOME}/Linux/bin ${JGHOME}/Linux/jre/bin)
+set path=($path ${GENUSHOME}/bin ${GENUSHOME}/share/bin ${GENUSHOME}/tools.lnx86/bin)
+
+# These lines set up the paths needed for the course
+set path=($path ${CDSHOME}/bin ${CDSHOME}/share/bin ${CDSHOME}/tools.lnx86/bin)
+set path=($path ${MMSIMHOME}/bin ${MMSIMHOME}/share/bin ${MMSIMHOME}/tools.lnx86/bin)
+
+set path=($path ${PVSHOME}/bin ${PVSHOME}/share/bin ${PVSHOME}/tools.lnx86/bin)
+set path=($path ${QRC_HOME}/bin ${QRC_HOME}/share/bin ${QRC_HOME}/tools.lnx86/bin)
+
+set path=($path ${ENCOUNTERHOME}/bin ${ENCOUNTERHOME}/share/bin ${ENCOUNTERHOME}/tools.lnx86/bin)
+set path=($path ${CONFORMAL}/data/bin ${CONFORMAL}/tools.lnx86/cfm ${CONFORMAL}/tools.lnx86/cdnshelp/bin ${CONFORMAL}/tools.lnx86/dfII/bin ${CONFORMAL}/tools.lnx86/jre1.50/bin ${CONFORMAL}/share/bin ${CONFORMAL}/tools.lnx86/bin)
+
+set path=($path ${LECHOME}/bin ${LECHOME}/share/bin ${LECHOME}/tools.lnx86/bin)
+
+set path=($path ${ETHOME}/bin ${ETHOME}/tools/bin ${ETHOME}/tools/dfII/bin ${ETHOME}/tools.lnx86/dfII/bin ${ETHOME}/tools.lnx86/dfII/bin ${ETHOME}/share/bin)
+
+set path=($path ${SPBHOME}/bin ${SPBHOME}/tools.lnx86/pcb/bin ${SPBHOME}/share/bin ${SPBHOME}/tools.lnx86/bin)
+
+set path=($path ${SIGHOME}/bin ${SIGHOME}/share/bin ${SIGHOME}/tools.lnx86/bin)
+set path=($path ${ETSHOME}/bin ${ETSHOME}/share/bin ${ETSHOME}/tools.lnx86/bin)
+set path=(${XCELIUMHOME}/tools/bin/64bit ${XCELIUMHOME}/tools/bin $path)
+
+echo "                                                      "
+echo "******************************************************"
+echo "******        Welcome to Cadence Tools         *******"
+echo "******************************************************"
+echo "                                                      "
+
+alias c 'clear'
+alias l 'ls'
