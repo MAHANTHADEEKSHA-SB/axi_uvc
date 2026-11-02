@@ -56,7 +56,7 @@ class axi_sub_coverage extends axi_coverage;
     cg_sub.set_inst_name({get_full_name(), ".sub"});
   endfunction
 
-  // Role hook (owner decision A-3)
+  // Role hook (owner decision A-9)
   protected virtual function void sample_coverage(axi_transaction t);
     int unsigned     w_bp    = 0;
     longint unsigned start;

@@ -42,7 +42,7 @@ class axi_mgr_coverage extends axi_coverage;
     cg_mgr.set_inst_name({get_full_name(), ".mgr"});
   endfunction
 
-  // Role hook (owner decision A-3)
+  // Role hook (owner decision A-9)
   protected virtual function void sample_coverage(axi_transaction t);
     data_order_e order        = SAME_EDGE;
     bit          partial_strb = 1'b0;

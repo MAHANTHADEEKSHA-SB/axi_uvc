@@ -7,7 +7,7 @@
 // generation brief asks for. Connected to the monitor's analysis port by the
 // agent when cfg.enable_coverage is set.
 //
-// Owner decisions A-3/A-5: write() is the fixed uvm_subscriber entry point and
+// Owner decisions A-9/A-5: write() is the fixed uvm_subscriber entry point and
 // lives only here; it samples the common covergroup, then calls the hook
 // sample_coverage(), which the role collectors axi_mgr_coverage and
 // axi_sub_coverage override with what their role controls.
@@ -80,14 +80,14 @@ class axi_coverage extends uvm_subscriber #(axi_transaction);
     cg.set_inst_name(get_full_name());
   endfunction
 
-  // Fixed entry point (owner decision A-3): common coverage, then the role hook.
+  // Fixed entry point (owner decision A-9): common coverage, then the role hook.
   virtual function void write(axi_transaction t);
     cg.sample(t.dir, t.burst, classify_size(t), t.len, unaligned_start(t), summary_resp(t),
               t.lock, t.cache, t.prot);
     sample_coverage(t);
   endfunction
 
-  // Role hook (owner decision A-3: locked name sample_coverage); empty here.
+  // Role hook (owner decision A-9: locked name sample_coverage); empty here.
   protected virtual function void sample_coverage(axi_transaction t);
   endfunction
 

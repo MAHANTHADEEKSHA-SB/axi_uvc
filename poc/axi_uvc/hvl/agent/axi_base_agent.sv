@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // axi_base_agent — role-independent skeleton of the AXI UVC agents
 //
-// Owner decision A-2 (base class holds the shared skeleton, roles override
+// Owner decision A-8 (base class holds the shared skeleton, roles override
 // empty hooks) applied where the skeleton is really shared: the base agent
 // retrieves its axi_agent_cfg ONCE from uvm_config_db (field "cfg", exact
 // agent path, UVM-06), validates it, and builds what every agent has — the
