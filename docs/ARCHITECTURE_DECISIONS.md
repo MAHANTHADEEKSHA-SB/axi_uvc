@@ -122,3 +122,23 @@ have been agreed.
 
   Decide this next, then proceed to writing actual class bodies against the
   rules above.
+
+## 2026-11-01 — Refactor onto the APB/AHB architecture (appended; entries above unchanged)
+
+**Owner request:** "Can u branch out from dev and refer apb and ahb uvc repo and refactor the axi uvc where ever needed" (`docs/dv-architecture/DECISION_LOG.md` D-001). The AXI UVC now follows the architecture of the owner's `apb_uvc` and `AHB-UVC` repositories and lives in `poc/axi_uvc/`; the governing documents are in `docs/dv-architecture/`. **New decisions are recorded in `docs/dv-architecture/DECISION_LOG.md`**; this file keeps its history.
+
+The entries above are numbered there as owner decisions **A-1..A-11** (D-009) and stay in force. Where the APB/AHB architecture changes one of them, the change is a proposal **S-1..S-6** awaiting the owner's confirmation:
+
+| Entry above | ID | Status | Where it is applied now |
+|---|---|---|---|
+| Scope: Roles — Master + Slave | A-1 | kept | `axi_mgr_agent` + `axi_sub_agent`, Manager and Subordinate BFMs (Manager/Subordinate terminology of IHI 0022 since Issue H.b, S-6) |
+| Scope: AXI4 Full, AXI4-Lite by config mode | A-2 | kept | `axi_features_t.protocol` = `AXI4_FULL` / `AXI4_LITE`, runtime, one image |
+| Rule 1: shared transaction | A-3 | kept | `axi_transaction` (renamed from `axi_base_transaction`, S-6) |
+| Rule 4: sequencers per role | A-4 | kept | `axi_mgr_sequencer`, `axi_sub_sequencer` over `axi_base_sequencer` |
+| Rule 5: no scoreboard; checker per agent; coverage per role; system checker | A-5 | kept in substance | per-agent checks in each agent's monitor BFM; `axi_mgr_coverage`, `axi_sub_coverage`; env and cross-agent checker as test code `tests/axi_poc_env.sv`, `tests/axi_poc_scoreboard.sv` (S-4) |
+| Rule 6: config object with widths, `is_active`, protocol mode | A-6 | kept, details changed | `axi_agent_cfg`; widths are the bound adapters' parameters (S-5) |
+| Open item: how components get their cfg | A-7 | **resolved** | option 2: the agent fetches the cfg once and hands the handle to its children (`CODING_GUIDELINES.md` UVM-06) |
+| Rule 2: base vs extended split with empty hooks | A-8 | kept where a skeleton is shared | `axi_base_agent`, `axi_coverage`, `axi_sub_base_seq`, `axi_base_sequencer`, `axi_base_seq`; no driver/monitor base classes (S-3) |
+| Rule 3: locked hook names | A-9 | `sample_coverage` and `write()` kept | `drive_transfer`/`collect_transfer`/`check_transfer` become the proxy APIs and the monitor BFM checks (S-3) |
+| Scope: single package `src/axi_pkg.sv` | A-10 | changed (S-1) | `axi_bfm_pkg` + `axi_api_pkg` / `axi_uvc_pkg` / `axi_adapter_pkg`; only package files carry `` `include `` (kept) |
+| Directory layout `src/`, `tb/` | A-11 | changed (S-2) | `poc/axi_uvc/`; the empty placeholders were removed — see `docs/dv-architecture/DIRECTORY_ARCHITECTURE.md` *Where the PR #14 placeholders went* |
