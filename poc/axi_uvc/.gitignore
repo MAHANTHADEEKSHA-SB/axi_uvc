@@ -1,0 +1,6 @@
+# Simulator/elaboration outputs from local runs and generated EDA bundles
+build/
+obj_dir/
+*_bundle.sv
+*.vcd
+*.fst

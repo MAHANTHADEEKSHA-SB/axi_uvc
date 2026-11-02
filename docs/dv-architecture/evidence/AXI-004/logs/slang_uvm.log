@@ -1,0 +1,21 @@
+$ python3 -I poc/axi_uvc/scripts/slang_elab.py +incdir+<UVM>/src <UVM>/src/uvm_pkg.sv -F poc/axi_uvc/filelists/axi_poc.f --top axi_hdl_top --top axi_hvl_top
+SHA 1757553965de57703e26b1c7a59ae06f3231d07c dirty=no
+<UVM>/src/uvm_pkg.sv:28:9: error: design element does not have a time scale defined but others in the design do
+package uvm_pkg;
+        ^~~~~~~
+in file included from <UVM>/src/uvm_pkg.sv:31:
+in file included from <UVM>/src/base/uvm_base.svh:52:
+<UVM>/src/base/uvm_resource.svh:1666:76: warning: for loop has empty body (put the semicolon on a separate line to silence this warning) [-Wempty-body]
+    for(first = 0; first < q.size() && !$cast(rsrc, q.get(first)); first++);
+                                                                           ^
+in file included from <UVM>/src/uvm_pkg.sv:35:
+in file included from <UVM>/src/seq/uvm_seq.svh:27:
+<UVM>/src/seq/uvm_sequencer.svh:171:34: warning: while loop has empty body (put the semicolon on a separate line to silence this warning) [-Wempty-body]
+    while (m_req_fifo.try_get(t));
+                                 ^
+SLANG_RESULT: errors=1 warnings=2 slang=12.1.0+42710c788
+Top level design units:
+    axi_hdl_top
+    axi_hvl_top
+
+exit=1
