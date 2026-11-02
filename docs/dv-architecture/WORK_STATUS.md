@@ -2,7 +2,7 @@
 
 **Checkpoint date:** 2026-11-02 (end of the second session: approved elaboration + pull request into `dev`; resume in a new session from *Resume here* — `SESSION_SUMMARY.md` has the one-page overview and a new-chat start prompt)
 **Repository:** https://github.com/MAHANTHADEEKSHA-SB/axi_uvc
-**Branch:** `claude/ecstatic-allen-kiy9we`, created from **`dev` at `c8db5daf5275915ddc80c3933ae55cb11acae95a`** (the merge of PR #14, "Refactor/uvc src layout") as the owner asked ("branch out from dev", D-001, D-010). Not merged; at the owner's request (D-012) a pull request into `dev` is open — see *Latest handoff* for its link.
+**Branch:** `claude/ecstatic-allen-kiy9we`, created from **`dev` at `c8db5daf5275915ddc80c3933ae55cb11acae95a`** (the merge of PR #14, "Refactor/uvc src layout") as the owner asked ("branch out from dev", D-001, D-010). Not merged; at the owner's request (D-012) pull request [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) into `dev` is open.
 **Template sources:** `https://github.com/MAHANTHADEEKSHA-SB/apb_uvc` `dev` at `b406d6a9c75aca158671f304257ce9a5ba346710`, and `https://github.com/MAHANTHADEEKSHA-SB/AHB-UVC` `dev` at `73f7d33` (merge of its PR #8; the AHB adaptation of the APB templates)
 **Current commit SHA:** read actual `git rev-parse HEAD`; this file cannot self-reference its own commit.
 **Working tree:** UNKNOWN for local clones; verify before changing code.
@@ -206,7 +206,8 @@ The owner asked whether the branch and commit naming rules were followed. Checke
 | GIT-01 branch name `feature/<task-id>-<description>` | **Deviation, recorded:** the session fixes the branch, `claude/ecstatic-allen-kiy9we` (D-010, as AHB D-008). The owner can rename the branch on GitHub (an open pull request follows the rename), for example to `feature/axi-001-apb-ahb-architecture`. |
 | GIT-02 Conventional Commits, `<type>(axi-uvc): <subject ≤ 72>`, body, `Refs:` footer | **Met:** every commit uses an allowed type with scope `axi-uvc`, an imperative subject, a body and a `Refs:` footer. **Note:** the first lines of `41a153a` and `582c694` are 73 characters. Their subjects (54 and 59 characters) meet the rule as written; if the 72 is read as the whole first line, they are one character over. Not rewritten: pushed history is never rewritten (GIT-04). New commits keep the whole first line ≤ 72. |
 | GIT-07 identity | **Met:** author and committer of every commit are Mahantha Deeksha S B with the owner's email; AI assistance only as `Co-Authored-By` |
-| GIT-06 pull request | Opened only after the owner's request (D-012) |
+| GIT-06 pull request | Opened only after the owner's request (D-012): [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) |
+| Later commits | The commits of the second session (from `9641abe` on) keep the whole first line ≤ 72 characters |
 
 ## AI handoff template (fill every session)
 
@@ -236,7 +237,7 @@ REPO/BRANCH: MAHANTHADEEKSHA-SB/axi_uvc @ claude/ecstatic-allen-kiy9we, created 
 EXACT COMMIT SHA: the branch HEAD (`git log -1`); evidence was produced on 1757553 (clean tree); the SV
              sources, filelists and scripts are unchanged since then
 GIT STATUS (including uncommitted files): clean after the push
-PULL REQUEST: into dev, opened at the owner's request (D-012); link in SESSION_SUMMARY.md section 1 once opened
+PULL REQUEST: https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15 (into dev, opened at the owner's request, D-012); not merged
 CURRENT TASK ID: none in progress; AXI-001 (S-1..S-6, Q1-Q7), T5 and the pull request review wait for the owner
 FILES CREATED/CHANGED: docs/dv-architecture/evidence/AXI-003/ and AXI-004/ (READMEs + sanitized logs);
              DECISION_LOG.md (D-011, D-012, D-003 status note); WORK_STATUS.md; REVIEW_FEEDBACK.md (RISK-001,

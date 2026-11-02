@@ -12,7 +12,7 @@
 |---|---|
 | AXI repository | https://github.com/MAHANTHADEEKSHA-SB/axi_uvc |
 | Work branch | `claude/ecstatic-allen-kiy9we`, created from `dev` at `c8db5da` (merge of PR #14, the empty `src/`/`tb/` scaffold + `docs/ARCHITECTURE_DECISIONS.md`); not merged |
-| Pull request | into `dev`, opened at the owner's request (D-012); link added once opened |
+| Pull request | [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) into `dev`, opened at the owner's request (D-012); not merged |
 | Approved tools | T1 slang via pyslang 12.1.0 and T3 UVM 1.2 mirror (D-011), elaboration only; reinstall in each new container with the commands in `WORK_STATUS.md`; T5 not approved |
 | `main` | older flat AXI code (`3348717`); behind `dev` |
 | Template sources | `apb_uvc` `dev` at `b406d6a`; `AHB-UVC` `dev` at `73f7d33` (its adaptation of the APB templates) |
@@ -38,7 +38,7 @@
 **Delivered:**
 - **First elaboration of the AXI sources** with the approved slang 12.1.0 (+ UVM 1.2), on `1757553`, clean tree: HDL smoke **errors=0 warnings=0** (`evidence/AXI-003/`); full UVM POC **0 errors and 0 warnings in the AXI sources** — the run still reports 1 error + 2 warnings inside UVM 1.2 (`MissingTimeScale`, RISK-012), exactly as for APB (`evidence/AXI-004/`). No source change was needed.
 - **Commit-message audit** (`WORK_STATUS.md`): Conventional Commits, `Refs:` footers and the owner identity on all 11 commits; branch name deviates from GIT-01 (session-fixed, D-010); two first lines are 73 characters (subjects 54/59 — within GIT-02 as written, one over if the whole line counts), not rewritten (GIT-04).
-- Status, decisions and risks updated (D-011, D-012; RISK-001/010/011/012/015); pull request into `dev` opened.
+- Status, decisions and risks updated (D-011, D-012; RISK-001/010/011/012/015); pull request [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) into `dev` opened.
 
 **Not done / not verified:**
 - **Nothing simulated.** slang only parses and elaborates; the HDL smoke, the four fault runs and the seven UVM tests need a simulator (T4, owner on EDA Playground). Elaboration says nothing about run-time behaviour.
