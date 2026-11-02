@@ -25,6 +25,6 @@ One `poc/axi_uvc/` directory ships its own **AXI interface, Manager, Subordinate
 
 ## Current status
 
-Architecture documentation and the M1 sources exist; this is **not a compiled or tested UVC**. No tool is approved for this repository yet; every compile, elaboration and simulation stage is NOT RUN. Actual status and next steps are in `WORK_STATUS.md`.
+Architecture documentation and the M1 sources exist; this is **not a simulated or tested UVC**. The owner approved slang 12.1.0 and UVM 1.2 for elaboration only (T1/T3, D-011): the HDL smoke and the full UVM POC elaborate with **0 diagnostics in the AXI sources**; the UVM run still reports one error inside UVM 1.2 (missing time scale, RISK-012; evidence in `evidence/AXI-003/` and `evidence/AXI-004/`). Every simulation stage is NOT RUN. Actual status and next steps are in `WORK_STATUS.md`.
 
-**Git workflow:** the work is on the session-designated branch `claude/ecstatic-allen-kiy9we`, created from `dev` at `c8db5da` (D-010). New work starts on a feature branch from `dev` (GIT-01) once this branch is merged. Do not merge without the owner's request.
+**Git workflow:** the work is on the session-designated branch `claude/ecstatic-allen-kiy9we`, created from `dev` at `c8db5da` (D-010). At the owner's request it is proposed for `dev` in a pull request (D-012). New work starts on a feature branch from `dev` (GIT-01) once this branch is merged. Do not merge without the owner's request.

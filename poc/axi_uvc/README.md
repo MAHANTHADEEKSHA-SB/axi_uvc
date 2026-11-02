@@ -2,9 +2,9 @@
 
 One reusable AXI UVC with both roles of the bus — **Manager** (master) and **Subordinate** (slave) — and a passive monitor. Two instances of the same source — **AW=32/DW=32/ID 4/4** and **AW=40/DW=64/ID 6/5** — run side by side to show width independence (ADR-001 decision 3). On each bus the UVC's Manager agent and Subordinate agent face each other, so no separate example Subordinate is needed. A third, **passive** instance P observes bus A with a monitor BFM plus a Manager BFM and a Subordinate BFM that are never enabled.
 
-**Status:** milestone M1 sources for HDL, HVL API, adapters, UVM agents, HVL top and tests are written as **portable IEEE 1800-2017 SystemVerilog/UVM with no tool-specific code paths**. **Nothing has been compiled, elaborated or simulated** (no tool is approved for this repository yet — see `../../docs/dv-architecture/WORK_STATUS.md`, which also lists the known gaps).
+**Status:** milestone M1 sources for HDL, HVL API, adapters, UVM agents, HVL top and tests are written as **portable IEEE 1800-2017 SystemVerilog/UVM with no tool-specific code paths**. **Elaborated, not simulated:** with the owner-approved slang 12.1.0 and UVM 1.2 (T1/T3), the HDL smoke elaborates with 0 errors and 0 warnings, and the full UVM POC with **0 diagnostics in the AXI sources** — the run still reports one error inside UVM 1.2 itself, its missing time scale (RISK-012). Nothing has been simulated. Evidence: `../../docs/dv-architecture/evidence/AXI-003/` and `AXI-004/`; status and known gaps: `../../docs/dv-architecture/WORK_STATUS.md`.
 
-Governing documents: `../../docs/dv-architecture/` — `DECISION_LOG.md` (owner decisions, including the AXI decisions A-1..A-7 and how each maps onto this layout), `CODING_GUIDELINES.md` (mandatory coding standard), `AXI_PROTOCOL_CONTRACT.md` (pins, rules, reset, transaction), `ARCHITECTURE_CONTRACT.md`, ADR-001, ADR-002, `WORK_STATUS.md`. They were adapted from the `apb_uvc` (`dev`, `b406d6a`) and `AHB-UVC` (`dev`, `73f7d33`) repositories.
+Governing documents: `../../docs/dv-architecture/` — `DECISION_LOG.md` (owner decisions, including the AXI decisions A-1..A-11 and how each maps onto this layout), `CODING_GUIDELINES.md` (mandatory coding standard), `AXI_PROTOCOL_CONTRACT.md` (pins, rules, reset, transaction), `ARCHITECTURE_CONTRACT.md`, ADR-001, ADR-002, `WORK_STATUS.md`. They were adapted from the `apb_uvc` (`dev`, `b406d6a`) and `AHB-UVC` (`dev`, `73f7d33`) repositories.
 
 ## Supported protocol
 
@@ -47,7 +47,7 @@ filelists/axi_hdl.f              reusable HDL core
 filelists/axi_hvl.f              reusable HVL core
 filelists/axi_hdl_smoke.f        HDL core + example top + HDL smoke
 filelists/axi_poc.f              everything for the UVM POC
-scripts/slang_elab.py            slang elaboration wrapper (proposed check, needs approval)
+scripts/slang_elab.py            slang elaboration wrapper (approved T1, see Running)
 scripts/make_eda_bundle.py       single-file bundle for EDA Playground (plain text, no tool)
 ```
 
@@ -137,6 +137,18 @@ Inside this repository's AI workflow, no simulator, compiler, elaborator or lint
 | UVM AXI4-Lite mode | same | same | `+UVM_TESTNAME=axi_lite_test` | `TEST_RESULT: PASS` |
 
 Language features the sources rely on: 4-state nets with `'z` release on interface nets, clocking blocks with `#1step` input skew, `fork…join_any` with `disable fork` in interface tasks, named events, queues of unpacked structs holding fixed-size arrays (and writes to members of their elements), fixed-size unpacked arrays as task and function arguments, functions with `ref` arguments in a class (smoke test), parameterized classes holding parameterized virtual-interface types, embedded covergroups (also in derived classes), a class declared in a module that calls a task through a hierarchical reference (test helper only), and UVM 1.2 or IEEE 1800.2.
+
+### Elaboration with slang (approved T1 + T3, `DECISION_LOG.md` D-011)
+
+Parse and elaboration only — slang does not simulate. From the repository root, with pyslang 12.1.0 installed and UVM 1.2 checked out outside the repository at `<UVM>`:
+
+```sh
+python3 -I poc/axi_uvc/scripts/slang_elab.py -F poc/axi_uvc/filelists/axi_hdl_smoke.f --top axi_hdl_smoke
+python3 -I poc/axi_uvc/scripts/slang_elab.py +incdir+<UVM>/src <UVM>/src/uvm_pkg.sv \
+    -F poc/axi_uvc/filelists/axi_poc.f --top axi_hdl_top --top axi_hvl_top
+```
+
+Expected: `SLANG_RESULT: errors=0 warnings=0` for the first command. The second reports `errors=1 warnings=2`, all inside UVM 1.2 (`MissingTimeScale` in `uvm_pkg.sv`, two `-Wempty-body`); a clean result needs slang's `--timescale 1ns/1ps`, which is **not approved** (T5, RISK-012).
 
 ### EDA Playground (commercial simulators)
 

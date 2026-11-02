@@ -1,6 +1,6 @@
 # AXI protocol contract — AXI-001 (single AXI UVC POC)
 
-**Status:** PROPOSED — written with the M1 sources on 2026-11-01; every open choice is listed in §12 (Q1–Q7) for owner review. Nothing has been compiled or simulated (§11).
+**Status:** PROPOSED — written with the M1 sources on 2026-11-01; every open choice is listed in §12 (Q1–Q7) for owner review. The sources elaborate with slang (approved T1/T3, 0 diagnostics in the AXI sources); nothing has been simulated (§11).
 **Date:** 2026-11-01
 **Task:** AXI-001 (`WORK_STATUS.md`)
 **Normative source:** Arm *AMBA AXI Protocol Specification*, ARM IHI 0022, referred to below as **[IHI]**. Manager/Subordinate terminology is used since Issue H.b (January 2021); Issue K (September 2023) and Issue L (August 2025) are the latest issues the authoring session found. The PDF is Arm copyright and is not stored in this repository.
@@ -209,7 +209,7 @@ The specification requires the `VALID` signals LOW during reset and the first `V
 - **Wake-up rule:** a publish pushes the entry and triggers a named event (`obs_ev`, `rst_ev`); the getters run `while (queue empty) @(event);`, so a publish earlier in the same time step is never missed.
 - The monitor works whether or not a Manager or Subordinate BFM is enabled, because it only reads pins (instance P).
 - 22 counted checks (`axi_mon_error_e`): VALID/READY/payload/ARESETn X/Z, VALID in reset, VALID dropped, payload unstable, reserved burst, burst length, size, WRAP alignment, 4KB, exclusive restrictions, AxCACHE, strobes outside lanes, WLAST, RLAST, B and R without a matching transaction, EXOKAY to a normal access, and two capacity limits.
-- Not compiled or simulated (§11).
+- Elaborated by slang without a diagnostic; not simulated, so none of the checks has fired yet (§11).
 
 ## 8. Driver and responder behaviour [ASSUMPTION; implemented in the BFMs]
 
@@ -275,12 +275,12 @@ Compile order: `axi_bfm_pkg` → HDL interfaces → `uvm_pkg` → `axi_api_pkg` 
 
 **AXI-003a (step 2):** the HDL files of the step 2 row, with instances A, B and P in `axi_hdl_top`, exercised by `tests/axi_hdl_smoke.sv`.
 
-Acceptance (all **NOT RUN** — no tool approved, D-003):
-1. Elaboration of `axi_hdl_smoke` (A, B, P): **0 errors** (log stored with SHA).
+Acceptance (item 1 **PASS**, items 2–3 **NOT RUN**; tools approved for elaboration only, D-011):
+1. Elaboration of `axi_hdl_smoke` (A, B, P): **0 errors** (log stored with SHA). **PASS** with slang 12.1.0 at `1757553`: errors=0, warnings=0 (`evidence/AXI-003/`).
 2. HDL-only directed smoke on a simulator: per instance the directed list of `axi_hdl_smoke.sv` (single beats, INCR4, WRAP4, FIXED, narrow byte merge, unaligned INCR, directed strobes, 32-beat INCR, data before address, a write and a read in flight together, SLVERR, DECERR, exclusive read) and on B a short AXI4-Lite phase. Manager results, read data and every published transaction must match, the counts must be exact, nothing may stay open, and A, B, P and the Subordinate-side monitors must report no protocol error.
 3. Negative controls: `+AXI_FAULT=1|2|3|4` must each be detected on A (and P) with the matching error code (`axi_fault_error()`), with B clean.
 
-Then **AXI-004:** elaborate `filelists/axi_poc.f` with a UVM library, then run the seven UVM tests of `WORK_STATUS.md` *Tests available*.
+Then **AXI-004:** elaborate `filelists/axi_poc.f` with a UVM library (done with UVM 1.2 at `1757553`: 0 diagnostics in the AXI sources, one error inside UVM 1.2, RISK-012; `evidence/AXI-004/`), then run the seven UVM tests of `WORK_STATUS.md` *Tests available* (NOT RUN).
 
 ---
 

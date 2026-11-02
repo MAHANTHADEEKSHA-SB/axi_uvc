@@ -38,6 +38,8 @@ Risk IDs follow the APB and AHB logs (`apb_uvc` at `b406d6a`, `AHB-UVC` at `73f7
 - Do the typed virtual BFM handles compile when three kinds of BFM use **ordinary individual signal ports** wired to the same `axi_if` instance, with two specializations (A and B) of each parameterized adapter in one image?
 - **Related APB evidence (not AXI evidence):** in `apb_uvc`, slang 12.1.0 elaborated the identical pattern with 0 project diagnostics (APB `evidence/APB-004/`); Verilator 5.020 aborted on two specializations of a parameterized class holding parameterized virtual-interface types (a tool defect; APB RISK-001). The AXI sources use the same pattern and must not be changed to suit that tool (D-002).
 - **Evidence required:** an approved elaboration of `filelists/axi_hdl_smoke.f` and `filelists/axi_poc.f` with both specializations, logs and SHA.
+- **Evidence 2026-11-02 (approved T1 + T3, D-011, commit `1757553`):** slang 12.1.0 elaborates the HDL smoke with 0 errors and 0 warnings (`evidence/AXI-003/`): two specializations (A, B) of the class `smoke_runner`, each holding typed virtual handles of all three BFM interfaces, which have ordinary signal ports on one `axi_if` per bus. With UVM 1.2 the full POC elaborates with **0 diagnostics in the AXI sources** (`evidence/AXI-004/`): two specializations each of `axi_drive_proxy`, `axi_respond_proxy` and `axi_monitor_proxy` in one image. The only diagnostics are inside UVM 1.2 (RISK-012).
+- **Status:** OPEN for run-time behaviour only — binding legality is shown by slang; simulation evidence (and acceptance by the simulator the owner uses, RISK-015) is still needed.
 
 ### RISK-002 — AXI handshake scheduling and observation
 - **Status:** OPEN.
@@ -77,18 +79,22 @@ Risk IDs follow the APB and AHB logs (`apb_uvc` at `b406d6a`, `AHB-UVC` at `73f7
 - **Evidence required:** the smoke (P checks) and `axi_passive_test` on a 4-state simulator, plus an X-injection test (not written yet, *Known gaps*).
 
 ### RISK-010 — *no counterpart*
-- APB RISK-010 recorded source changes made for unapproved tools. No tool has been run for the AXI sources, and they contain no tool-specific code (NN-01 grep, `CODING_GUIDELINES.md` §14).
+- APB RISK-010 recorded source changes made for unapproved tools. The AXI sources were only run on the approved slang (D-011), which needed no source change, and they contain no tool-specific code (NN-01 grep, `CODING_GUIDELINES.md` §14).
 
 ### RISK-011 — HDL and HVL/UVM layers written without any compilation
 - **Status:** OPEN; raised 2026-11-01 for the first AXI push.
 - Every AXI source was written under the toolchain gate with no tool approved for this repository (D-003). Only a static self-review and text-only checks were done (`WORK_STATUS.md` *Static self-review done*); several defects were found and fixed that way, which shows the review is useful but not that none remain.
 - Constructs most likely to need attention are listed in `WORK_STATUS.md` *First-compile watch list*. Each failure must be classified as source bug, standard violation or tool limitation, and fixed without tool-specific code.
 - **Evidence required:** an approved elaboration of `filelists/axi_hdl_smoke.f` and `filelists/axi_poc.f` with 0 errors in project code, then the HDL smoke and the seven UVM tests passing with logs and SHA.
+- **Evidence 2026-11-02 (approved T1 + T3, D-011, commit `1757553`, `evidence/AXI-003/`, `evidence/AXI-004/`):** first elaboration ever of the AXI sources: the HDL smoke gives errors=0 warnings=0; the full UVM POC gives **0 errors and 0 warnings in project code** — no source change was needed, every item of the *First-compile watch list* was accepted. The UVM run exits with 1 error and 2 warnings inside UVM 1.2 (RISK-012).
+- **Status:** OPEN until the UVM run is clean (RISK-012) and the HDL smoke and the seven UVM tests have run on a simulator.
 
-### RISK-012 — UVM 1.2 has no `timescale; mixing is an error under slang (expected)
-- **Status:** OPEN (expected, not yet observed for AXI).
-- APB RISK-012: slang 12.1.0 reports `MissingTimeScale` in `uvm_pkg.sv` because every project file declares `` `timescale 1ns/1ps `` and UVM 1.2 declares none. The AXI sources follow the same LANG-10 rule, so the same diagnostic is expected for any slang + UVM 1.2 run. Classification: library / language rule, not a project source bug. Not worked around in the sources.
-- **Proposed resolution:** as for APB, an owner decision on a default-timescale option for the elaborator/simulator (T5 in `WORK_STATUS.md`).
+### RISK-012 — UVM 1.2 has no `timescale; mixing is an error under slang
+- **Status:** OPEN; **observed 2026-11-02** (`evidence/AXI-004/`); T5 not approved (D-011 approved T1 and T3 only).
+- APB RISK-012: slang 12.1.0 reports `MissingTimeScale` in `uvm_pkg.sv` because every project file declares `` `timescale 1ns/1ps `` and UVM 1.2 declares none. The AXI sources follow the same LANG-10 rule, so the same diagnostic was expected for any slang + UVM 1.2 run (observed, below). Classification: library / language rule, not a project source bug. Not worked around in the sources.
+- **Observed:** slang 12.1.0 reports `MissingTimeScale` at `<UVM>/src/uvm_pkg.sv:28` ("design element does not have a time scale defined but others in the design do"), plus 2 × `-Wempty-body` in UVM library code; identical to APB `evidence/APB-004/`. Not worked around: no edits to UVM, no removal of project time scales, no shim file.
+- **Proposed resolution:** as for APB, an owner decision on a default-timescale option for the elaborator/simulator: **T5**, slang's `--timescale 1ns/1ps` (`WORK_STATUS.md`). Commercial-simulator flows (T4) need the same decision for their own option.
+- **Evidence required:** the T1 UVM command with the approved option, errors=0.
 
 ### RISK-013 — IHI 0022 cited by section title; numbers and wording not verified against the PDF
 - **Status:** OPEN; raised 2026-11-01.
@@ -104,6 +110,7 @@ Risk IDs follow the APB and AHB logs (`apb_uvc` at `b406d6a`, `AHB-UVC` at `73f7
 ### RISK-015 — Language features with uneven tool support
 - **Status:** OPEN; first-compile watch list.
 - Fixed-size unpacked arrays of `AXI_MAX_BEATS` (256) entries as task and function arguments called through virtual interfaces; queues of unpacked structs holding such arrays, with writes to members of queue elements (`rd_q[idx].d.data[n] = …`); functions returning unpacked structs with arrays; `ref` arguments of class functions (smoke); embedded covergroups in derived classes; two `uvm_analysis_imp_decl` in a test package; a class declared in a module that calls a module task through a hierarchical reference. All are IEEE 1800-2017 constructs; a tool that rejects one is logged here, not coded around (NN-06).
+- **Evidence 2026-11-02:** slang 12.1.0 accepts all of them without a diagnostic (`evidence/AXI-003/`, `evidence/AXI-004/`). Other tools are unknown; Verilator 5.020 is known to fail on the adapter pattern (APB RISK-001).
 
 ### RISK-016 — Common-mode errors between BFMs written from one reading of the specification
 - **Status:** OPEN; raised 2026-11-01.
@@ -122,4 +129,4 @@ Risk IDs follow the APB and AHB logs (`apb_uvc` at `b406d6a`, `AHB-UVC` at `73f7
 
 ## Closed findings
 
-_None. No AXI source has been compiled or simulated._
+_None. The AXI sources are elaborated by slang (2026-11-02) but not simulated; elaboration alone closes no risk._

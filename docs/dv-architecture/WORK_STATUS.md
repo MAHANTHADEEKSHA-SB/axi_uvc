@@ -1,15 +1,15 @@
 # WORK_STATUS — single AXI UVC handoff checkpoint
 
-**Checkpoint date:** 2026-11-02 (end of the first AXI refactor session; resume in a new session from *Resume here* — `SESSION_SUMMARY.md` has the one-page overview and a new-chat start prompt)
+**Checkpoint date:** 2026-11-02 (end of the second session: approved elaboration + pull request into `dev`; resume in a new session from *Resume here* — `SESSION_SUMMARY.md` has the one-page overview and a new-chat start prompt)
 **Repository:** https://github.com/MAHANTHADEEKSHA-SB/axi_uvc
-**Branch:** `claude/ecstatic-allen-kiy9we`, created from **`dev` at `c8db5daf5275915ddc80c3933ae55cb11acae95a`** (the merge of PR #14, "Refactor/uvc src layout") as the owner asked ("branch out from dev", D-001, D-010). Not merged; no pull request opened (GIT-06).
+**Branch:** `claude/ecstatic-allen-kiy9we`, created from **`dev` at `c8db5daf5275915ddc80c3933ae55cb11acae95a`** (the merge of PR #14, "Refactor/uvc src layout") as the owner asked ("branch out from dev", D-001, D-010). Not merged; at the owner's request (D-012) a pull request into `dev` is open — see *Latest handoff* for its link.
 **Template sources:** `https://github.com/MAHANTHADEEKSHA-SB/apb_uvc` `dev` at `b406d6a9c75aca158671f304257ce9a5ba346710`, and `https://github.com/MAHANTHADEEKSHA-SB/AHB-UVC` `dev` at `73f7d33` (merge of its PR #8; the AHB adaptation of the APB templates)
 **Current commit SHA:** read actual `git rev-parse HEAD`; this file cannot self-reference its own commit.
 **Working tree:** UNKNOWN for local clones; verify before changing code.
-**Phase:** the empty `src/`/`tb/` scaffold of PR #14 refactored onto the APB/AHB architecture: governance docs adapted for AXI; M1 sources for steps 2–6 **written and commented** (HDL, HVL API, adapters, UVM agents of both roles, HVL top, HDL smoke, seven UVM tests) as portable IEEE 1800-2017 SystemVerilog/UVM following `CODING_GUIDELINES.md`. **Nothing compiled, elaborated or simulated: no tool is approved for this repository (D-003).**
-**Tool results:** none. Text-only checks only; see *Static self-review done*.
+**Phase:** the empty `src/`/`tb/` scaffold of PR #14 refactored onto the APB/AHB architecture: governance docs adapted for AXI; M1 sources for steps 2–6 **written and commented** (HDL, HVL API, adapters, UVM agents of both roles, HVL top, HDL smoke, seven UVM tests) as portable IEEE 1800-2017 SystemVerilog/UVM following `CODING_GUIDELINES.md`. **Elaborated with the owner-approved slang 12.1.0 + UVM 1.2 (T1/T3, D-011) with 0 diagnostics in the AXI sources; nothing simulated.**
+**Tool results:** slang 12.1.0 at `1757553` (clean tree): HDL smoke **PASS** errors=0 warnings=0 (`evidence/AXI-003/`); UVM POC errors=1 warnings=2, **all inside UVM 1.2** — `MissingTimeScale`, RISK-012 — and 0 in the AXI sources (`evidence/AXI-004/`). No simulation. See *Validation evidence*.
 **Next implementer:** Claude or another authorized model/engineer.
-**Active task:** none in progress. Next: owner review of `AXI_PROTOCOL_CONTRACT.md` Q1–Q7 and of the proposals S-1..S-6 (`DECISION_LOG.md`), and a decision on the toolchain approval request below.
+**Active task:** none in progress. Next: the owner reviews the pull request into `dev`, decides S-1..S-6 (`DECISION_LOG.md`), Q1–Q7 (`AXI_PROTOCOL_CONTRACT.md` §12) and T5 (below), and runs the simulation flows (T4).
 **Spec reference:** Arm AMBA AXI Protocol Specification, ARM IHI 0022 (Manager/Subordinate terminology since Issue H.b; latest issues K, September 2023, and L, August 2025). The PDF is Arm copyright and is not committed here; citations are by section title (RISK-013).
 
 > Do not trust this status without comparing it to the real files, current Git SHA, and logs. Any difference must be reconciled explicitly.
@@ -20,7 +20,7 @@
 2. Read in order: `SESSION_SUMMARY.md` (orientation) → `AGENTS.md` (root) → `docs/dv-architecture/AGENTS.md` → **`DECISION_LOG.md`** → **`CODING_GUIDELINES.md`** (mandatory standard + pre-commit checklist) → `ARCHITECTURE_CONTRACT.md` → ADR-001 → ADR-002 → `AXI_PROTOCOL_CONTRACT.md` → this file → `REVIEW_FEEDBACK.md` → `poc/axi_uvc/README.md`.
 3. **Owner rules in force** (full list and sources in `DECISION_LOG.md`):
    - **Every code change follows `CODING_GUIDELINES.md`** and its §13 checklist is ticked before commit (D-005, D-006).
-   - **No tool execution** (simulator, compiler, elaborator, lint) without explicit owner approval of tool, version, commands **and options** (D-003). **Nothing is approved for this repository**; the APB approvals do not carry over.
+   - **No tool execution** (simulator, compiler, elaborator, lint) without explicit owner approval of tool, version, commands **and options** (D-003). **Approved for this repository (D-011): T1** (slang via pyslang 12.1.0) and **T3** (UVM 1.2 from the owner-named mirror), with the exact commands in *Toolchain approval request*; **T5 and everything else are not approved**.
    - **No tool-specific workarounds:** no `` `ifdef <TOOL> ``, tool pragmas or tool-motivated rewrites (D-002). Log tool shortfalls in `REVIEW_FEEDBACK.md` instead.
    - The AXI decisions **A-1..A-11** (`DECISION_LOG.md` D-009) stay in force: both roles, AXI4 + AXI4-Lite by configuration, shared transaction, per-role sequencers and coverage, no scoreboard in the core. The proposals **S-1..S-6** that change parts of them await the owner.
    - Width set A: AW=32/DW=32/ID 4/4, B: AW=40/DW=64/ID 6/5; passive observer P on bus A (Q3, proposed).
@@ -42,15 +42,15 @@ Deliver **one reusable AXI UVC** with a Manager and a Subordinate role, rooted a
 | DOC-003 | Single-AXI-UVC directory/contract/prompt/guidelines/decision log | DOCUMENTED | `DIRECTORY_ARCHITECTURE.md`, `ARCHITECTURE_CONTRACT.md` v0.1, `CLAUDE_GENERATION_PROMPT.md`, `CODING_GUIDELINES.md`, `DECISION_LOG.md` |
 | DOC-004 | AXI-001 protocol contract | PROPOSED | `AXI_PROTOCOL_CONTRACT.md`; Q1–Q7 open; citations by title (RISK-013) |
 | DOC-005 | AXI decisions of PR #14 mapped (A-1..A-11), changes proposed (S-1..S-6) | PROPOSED | `DECISION_LOG.md`; appended section of `docs/ARCHITECTURE_DECISIONS.md`; placeholder mapping in `DIRECTORY_ARCHITECTURE.md` |
-| IMP-001 | AXI interface and the three BFMs | WRITTEN_M1, NOT COMPILED | `poc/axi_uvc/hdl/*`; M2 user signals rejected by `configure()` |
-| IMP-002 | Proxy bases and concrete adapters (drive, respond, observe) | WRITTEN, NOT COMPILED | `hvl/api/*`, `hvl/adapter/*` |
-| IMP-003 | Non-parameterized UVM components of both roles | WRITTEN, NOT COMPILED | `hvl/config`, `hvl/agent`, `hvl/coverage`, `hvl/sequences`, `hvl/pkg/axi_uvc_pkg.sv` |
-| IMP-004 | Dual-width UVM test with both roles + passive observer | WRITTEN, NOT COMPILED | `examples/axi_hvl_top.sv`, `tests/axi_poc_test.sv`, `tests/axi_passive_reset_tests.sv` |
-| IMP-005 | Negative tests and AXI4-Lite mode | WRITTEN, NOT RUN | fault injection (4 modes), cfg legality (17 cases), unfit data/ID, reset mid-write, AXI4-Lite on bus B; independent reviews NOT_STARTED |
+| IMP-001 | AXI interface and the three BFMs | WRITTEN_M1, ELABORATED (slang), NOT SIMULATED | `poc/axi_uvc/hdl/*`; M2 user signals rejected by `configure()` |
+| IMP-002 | Proxy bases and concrete adapters (drive, respond, observe) | WRITTEN, ELABORATED (slang), NOT SIMULATED | `hvl/api/*`, `hvl/adapter/*` |
+| IMP-003 | Non-parameterized UVM components of both roles | WRITTEN, ELABORATED (slang + UVM 1.2), NOT SIMULATED | `hvl/config`, `hvl/agent`, `hvl/coverage`, `hvl/sequences`, `hvl/pkg/axi_uvc_pkg.sv` |
+| IMP-004 | Dual-width UVM test with both roles + passive observer | WRITTEN, ELABORATED (slang + UVM 1.2), NOT RUN | `examples/axi_hvl_top.sv`, `tests/axi_poc_test.sv`, `tests/axi_passive_reset_tests.sv` |
+| IMP-005 | Negative tests and AXI4-Lite mode | WRITTEN, ELABORATED, NOT RUN | fault injection (4 modes), cfg legality (17 cases), unfit data/ID, reset mid-write, AXI4-Lite on bus B; independent reviews NOT_STARTED |
 
 ## Source manifest
 
-All paths under `poc/axi_uvc/`. Nothing is compiled or simulated.
+All paths under `poc/axi_uvc/`. Everything elaborates with slang (`evidence/AXI-003/`, `AXI-004/`); nothing is simulated.
 
 | Path | Content | Status |
 |---|---|---|
@@ -120,6 +120,8 @@ Removed: the 30 empty placeholder files of PR #14 under `src/` and `tb/` (0 byte
 
 ## First-compile watch list (most likely to need attention)
 
+**2026-11-02:** slang 12.1.0 accepted every item below without a diagnostic (`evidence/AXI-003/`, `AXI-004/`). The list stays relevant for the simulator the owner uses (T4, RISK-015).
+
 Classify any failure as **source bug**, **standard violation** or **tool limitation** (contract gate). Never add tool-specific code.
 
 1. `+incdir+` paths in `-F` filelists: some simulators resolve them relative to the filelist, others to the current directory. If includes are not found, pass the include dirs on the command line or use the EDA bundle.
@@ -148,50 +150,63 @@ Classify any failure as **source bug**, **standard violation** or **tool limitat
 ## Next tasks — in priority order
 
 - [~] **AXI-001 — Review protocol contract and proposals:** drafted in `AXI_PROTOCOL_CONTRACT.md` and `DECISION_LOG.md`; Q1–Q7 and S-1..S-6 implemented as proposed, awaiting owner review.
-- [ ] **AXI-002 — Toolchain approval:** owner decides on T1/T3 (and T5) below; until then everything stays NOT RUN.
-- [~] **AXI-003 — HDL + compile:** sources written; elaboration and the HDL smoke NOT RUN.
-- [~] **AXI-004 — HVL types/proxies/agents + compile:** sources written; elaboration NOT RUN.
+- [x] **AXI-002 — Toolchain approval:** T1 and T3 approved on 2026-11-02 (D-011). **T5 still open** (needed for a clean UVM elaboration, RISK-012); T4 is owner-run.
+- [~] **AXI-003 — HDL + compile:** elaboration **PASS** (slang 12.1.0, errors=0 warnings=0, `evidence/AXI-003/`); the HDL smoke simulation and the four fault runs NOT RUN (T4).
+- [~] **AXI-004 — HVL types/proxies/agents + compile:** elaboration with UVM 1.2 gives **0 diagnostics in the AXI sources**; the run fails on UVM 1.2's own missing time scale (RISK-012) until T5 is decided (`evidence/AXI-004/`).
 - [~] **AXI-005 — Run AXI POC:** eight flows written (*Tests available*); NOT RUN. The owner can run them on EDA Playground (T4).
 - [ ] **AXI-006 — Independent reviews:** ChatGPT and Gemini review the same pinned commit, record findings and rerun failing tests; a run against an independent AXI model (RISK-016).
 - [ ] **AXI-007 — Spec citation check (RISK-013):** a reviewer with IHI 0022 confirms section titles/numbers and the wording of AXI-R04/R23/R24/R25.
 
 ## Toolchain (this container, 2026-11-02)
 
-Non-executing discovery only (`command -v`, Python module lookup); no tool was launched.
+Installed with the approved commands (D-011); the container is ephemeral, so a new session repeats both steps.
 
 | Tool | Version | Status | Use |
 |---|---|---|---|
-| slang (via `pyslang`) | — | **Not installed** (`importlib.util.find_spec('pyslang')` is None) | Would need installation from PyPI — part of the T1 approval |
-| slang, verilator, iverilog, vcs, xrun, vsim, dsim executables | — | Not found on `PATH` | — |
-| Commercial simulators | — | Not in this container | Owner option: EDA Playground (D-004) |
-| UVM library | — | Not downloaded | Needed for elaboration of the HVL code (T3) |
+| slang (via `pyslang`) | 12.1.0+42710c788 (pyslang 12.1.0, PyPI; Python 3.13) | **Installed** with `python3 -m pip install pyslang==12.1.0` (T1) | Elaboration of the HDL smoke and the UVM POC (`evidence/AXI-003/`, `AXI-004/`) |
+| UVM library | 1.2, mirror `https://github.com/gchinna/uvm-1.2` at `a3cb91138ffdf73e76cdc022905ab589247d0632` | **Cloned** to `/opt/tools/uvm-1.2-gchinna` (outside the repository) (T3) | Elaboration of the HVL code; not a simulator |
+| slang, verilator, iverilog, vcs, xrun, vsim, dsim executables | — | Not on `PATH` (discovery only, 2026-11-01) | — |
+| Commercial simulators | — | Not in this container | Owner option: EDA Playground (D-004, T4) |
 
 ## Validation evidence
 
-**Nothing executed** except the text-only checks above. No evidence directory exists yet; the first approved run creates `docs/dv-architecture/evidence/AXI-003/` (VER-02).
+Current sources: everything **elaborated** on the approved slang (below); **nothing simulated**. The SystemVerilog sources, filelists and scripts under `poc/axi_uvc/` are unchanged since the evidence commit `1757553`; only the UVC `README.md` changed (check: `git diff --stat 1757553 HEAD -- poc/ ':!poc/axi_uvc/README.md'` is empty).
 
 | Stage | Tool/version | Command | Result | Log | Commit |
 |---|---|---|---|---|---|
-| HDL elaboration (`axi_hdl_smoke`) | — (T1 proposed) | NOT RUN | NOT RUN | — | — |
+| HDL elaboration (`axi_hdl_smoke`) | slang 12.1.0 (T1, approved) | `python3 -I poc/axi_uvc/scripts/slang_elab.py -F poc/axi_uvc/filelists/axi_hdl_smoke.f --top axi_hdl_smoke` | **PASS** — errors=0 warnings=0 | `evidence/AXI-003/logs/slang_hdl.log` | `1757553` |
 | HDL-only smoke A/B/P + 4 fault runs | — (T4 proposed) | NOT RUN | NOT RUN | — | — |
-| HVL + UVM elaboration (`axi_poc.f`) | — (T1 + T3 proposed) | NOT RUN | NOT RUN | — | — |
+| HVL + UVM elaboration (`axi_poc.f`) | slang 12.1.0 + UVM 1.2 mirror `a3cb911` (T1 + T3, approved) | `python3 -I poc/axi_uvc/scripts/slang_elab.py +incdir+<UVM>/src <UVM>/src/uvm_pkg.sv -F poc/axi_uvc/filelists/axi_poc.f --top axi_hdl_top --top axi_hvl_top` | **FAIL (UVM library)** — errors=1 warnings=2, all in UVM 1.2: `MissingTimeScale` (`uvm_pkg.sv:28`), 2 × `-Wempty-body`. **AXI sources: 0 errors, 0 warnings** | `evidence/AXI-004/logs/slang_uvm.log` | `1757553` |
 | UVM `axi_poc_test`, `axi_passive_test`, `axi_reset_test`, `axi_lite_test` | — (T4 proposed) | NOT RUN | NOT RUN | — | — |
 | UVM `axi_fault_injection_test` ×4 | — (T4 proposed) | NOT RUN | NOT RUN | — | — |
 | UVM `axi_cfg_negative_test`, `axi_width_negative_test` | — (T4 proposed) | NOT RUN | NOT RUN | — | — |
 | 4-state / drive release / X-Z checks | — | NOT RUN | NOT RUN | — | — |
 | Emulation | UNKNOWN | NOT RUN | NOT RUN | — | — |
 
+Both elaborations passed on their first run; no source change was needed. The diagnostics are classified in `evidence/AXI-004/README.md` (library / language rule and third-party idiom; no project source bug).
+
 ## Toolchain approval request
 
-**Nothing is approved for this repository (D-003).** The items mirror the APB approvals so the owner can decide quickly; each needs an explicit "approved" with tool, version and commands. Commands are from the repository root.
+**Owner decision 2026-11-02 (D-011): T1 approved (pyslang 12.1.0) and T3 approved (UVM 1.2, mirror `github.com/gchinna/uvm-1.2`).** T2 not proposed; T4 is an owner-run option; **T5 not approved** (not asked yet; needed for a clean UVM elaboration, RISK-012). Nothing outside these items may run (D-003; approval for one item does not cover another). No tool-specific source changes and no extra tool options without approval. Commands are from the repository root.
 
 | # | Tool / version | Scope | Exact commands |
 |---|---|---|---|
-| T1 | slang via pyslang (PyPI), version to be fixed at approval (APB used 12.1.0) — **PROPOSED** | Install, then elaboration/lint of the HDL smoke and the full UVM POC | Install: `python3 -m pip install pyslang==<version>`. HDL: `python3 -I poc/axi_uvc/scripts/slang_elab.py -F poc/axi_uvc/filelists/axi_hdl_smoke.f --top axi_hdl_smoke`. UVM: `python3 -I poc/axi_uvc/scripts/slang_elab.py +incdir+<UVM>/src <UVM>/src/uvm_pkg.sv -F poc/axi_uvc/filelists/axi_poc.f --top axi_hdl_top --top axi_hvl_top` |
+| T1 | slang via pyslang (PyPI) **12.1.0** — **APPROVED 2026-11-02** (D-011) | Install, then elaboration/lint of the HDL smoke and the full UVM POC | Install: `python3 -m pip install pyslang==12.1.0`. HDL: `python3 -I poc/axi_uvc/scripts/slang_elab.py -F poc/axi_uvc/filelists/axi_hdl_smoke.f --top axi_hdl_smoke`. UVM: `python3 -I poc/axi_uvc/scripts/slang_elab.py +incdir+<UVM>/src <UVM>/src/uvm_pkg.sv -F poc/axi_uvc/filelists/axi_poc.f --top axi_hdl_top --top axi_hvl_top` |
 | T2 | ~~Verilator~~ | **Not proposed:** the APB work showed Verilator 5.020 cannot build this architecture (APB RISK-001/009); workarounds are not allowed | — |
-| T3 | UVM **1.2** source, owner-named mirror (APB D-009) — **PROPOSED** | Download only, for T1 elaboration; not a simulator; kept outside the repository | `git clone https://github.com/gchinna/uvm-1.2.git /opt/tools/uvm-1.2-gchinna` |
+| T3 | UVM **1.2** source, owner-named mirror (APB D-009) — **APPROVED 2026-11-02** (D-011) | Download only, for T1 elaboration; not a simulator; kept outside the repository | `git clone https://github.com/gchinna/uvm-1.2.git /opt/tools/uvm-1.2-gchinna` |
 | T4 | Commercial simulator on EDA Playground (owner picks Questa/Xcelium/VCS/…, with its UVM 1.2 or 1800.2 library) — owner-run | HDL smoke and the UVM tests in *Tests available*, 4-state checks (RISK-009) | HDL bundle: `python3 -I poc/axi_uvc/scripts/make_eda_bundle.py poc/axi_uvc/filelists/axi_hdl_smoke.f axi_hdl_smoke_bundle.sv` (top `axi_hdl_smoke`). UVM bundle: `python3 -I poc/axi_uvc/scripts/make_eda_bundle.py poc/axi_uvc/filelists/axi_poc.f axi_poc_bundle.sv` (tops `axi_hdl_top axi_hvl_top`, run option `+UVM_TESTNAME=<test>`). The bundle step is plain text processing; record each result here |
-| T5 | slang option `--timescale 1ns/1ps` — **PROPOSED, expected to be needed** (RISK-012) | Default time scale for design elements that declare none (UVM 1.2's `uvm_pkg`); project files keep their own `` `timescale 1ns/1ps `` | the T1 UVM command with `--timescale 1ns/1ps` added |
+| T5 | slang option `--timescale 1ns/1ps` — **PROPOSED, needed** (RISK-012 observed 2026-11-02, `evidence/AXI-004/`) | Default time scale for design elements that declare none (UVM 1.2's `uvm_pkg`); project files keep their own `` `timescale 1ns/1ps `` | the T1 UVM command with `--timescale 1ns/1ps` added |
+
+## Commit-message audit (D-012, 2026-11-02)
+
+The owner asked whether the branch and commit naming rules were followed. Checked on the 11 commits `1eeecc2`..`1757553` (`git log origin/dev..HEAD`):
+
+| Rule | Result |
+|---|---|
+| GIT-01 branch name `feature/<task-id>-<description>` | **Deviation, recorded:** the session fixes the branch, `claude/ecstatic-allen-kiy9we` (D-010, as AHB D-008). The owner can rename the branch on GitHub (an open pull request follows the rename), for example to `feature/axi-001-apb-ahb-architecture`. |
+| GIT-02 Conventional Commits, `<type>(axi-uvc): <subject ≤ 72>`, body, `Refs:` footer | **Met:** every commit uses an allowed type with scope `axi-uvc`, an imperative subject, a body and a `Refs:` footer. **Note:** the first lines of `41a153a` and `582c694` are 73 characters. Their subjects (54 and 59 characters) meet the rule as written; if the 72 is read as the whole first line, they are one character over. Not rewritten: pushed history is never rewritten (GIT-04). New commits keep the whole first line ≤ 72. |
+| GIT-07 identity | **Met:** author and committer of every commit are Mahantha Deeksha S B with the owner's email; AI assistance only as `Co-Authored-By` |
+| GIT-06 pull request | Opened only after the owner's request (D-012) |
 
 ## AI handoff template (fill every session)
 
@@ -213,7 +228,36 @@ NEXT EXACT COMMAND/SMALLEST TASK:
 
 **Rule:** One model's confidence is not a validation result. If context/tokens are low, write this handoff before starting further generation.
 
-### Latest handoff — 2026-11-02 (first AXI refactor session)
+### Latest handoff — 2026-11-02 (second session: approved elaboration, pull request)
+
+```text
+HANDOFF FROM: Claude (Claude Code session, continued after a context reset)
+REPO/BRANCH: MAHANTHADEEKSHA-SB/axi_uvc @ claude/ecstatic-allen-kiy9we, created from dev c8db5da (PR #14 merge)
+EXACT COMMIT SHA: the branch HEAD (`git log -1`); evidence was produced on 1757553 (clean tree); the SV
+             sources, filelists and scripts are unchanged since then
+GIT STATUS (including uncommitted files): clean after the push
+PULL REQUEST: into dev, opened at the owner's request (D-012); link in SESSION_SUMMARY.md section 1 once opened
+CURRENT TASK ID: none in progress; AXI-001 (S-1..S-6, Q1-Q7), T5 and the pull request review wait for the owner
+FILES CREATED/CHANGED: docs/dv-architecture/evidence/AXI-003/ and AXI-004/ (READMEs + sanitized logs);
+             DECISION_LOG.md (D-011, D-012, D-003 status note); WORK_STATUS.md; REVIEW_FEEDBACK.md (RISK-001,
+             010, 011, 012, 015); SESSION_SUMMARY.md; README.md (docs); AXI_PROTOCOL_CONTRACT.md (status, §11);
+             poc/axi_uvc/README.md (status, slang section, A-1..A-11 citation). No SV source changed.
+PROVEN WORKING (with log/command): slang 12.1.0 elaboration of axi_hdl_smoke.f: errors=0 warnings=0
+             (evidence/AXI-003/logs/slang_hdl.log); slang 12.1.0 + UVM 1.2 elaboration of axi_poc.f: 0 errors and
+             0 warnings in the AXI sources (evidence/AXI-004/logs/slang_uvm.log)
+FAILED CHECKS (with log/command): the UVM elaboration exits 1: MissingTimeScale in <UVM>/src/uvm_pkg.sv:28 plus
+             2 x -Wempty-body in UVM code (library / language rule, RISK-012); needs T5 (--timescale 1ns/1ps)
+NOT YET RUN: every simulation (HDL smoke, 4 fault runs, 7 UVM tests); T5 elaboration; 4-state checks
+UNRESOLVED AXI SPEC/PORT/SCHEDULING QUESTIONS: Q1-Q7; S-1..S-6; RISK-013 (citations by title); RISK-014
+OPEN REVIEW FINDING IDS: RISK-001..006, 008, 009, 011..018 (007 and 010 not applicable)
+ARCHITECTURE CONTRACT/ADR AMENDED?: no change this session; ADR-002 amendment AXI-1 still PROPOSED
+NEXT EXACT COMMAND/SMALLEST TASK: owner reviews the pull request and decides S-1..S-6, Q1-Q7 and T5. If T5 is
+             approved: in a new container repeat the T1/T3 installs, then run the T1 UVM command with
+             --timescale 1ns/1ps and record evidence/AXI-004/ (expect errors=0 in the AXI sources and in UVM).
+             Then the owner runs the T4 bundles on EDA Playground; record each result here.
+```
+
+### Previous handoff — 2026-11-02 (first AXI refactor session)
 
 ```text
 HANDOFF FROM: Claude (Claude Code session)

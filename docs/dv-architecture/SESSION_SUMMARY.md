@@ -6,18 +6,22 @@
 
 ---
 
-## 1. Where things are (2026-11-02)
+## 1. Where things are (2026-11-02, end of the second session)
 
 | Item | Value |
 |---|---|
 | AXI repository | https://github.com/MAHANTHADEEKSHA-SB/axi_uvc |
-| Work branch | `claude/ecstatic-allen-kiy9we`, created from `dev` at `c8db5da` (merge of PR #14, the empty `src/`/`tb/` scaffold + `docs/ARCHITECTURE_DECISIONS.md`); not merged, no PR |
+| Work branch | `claude/ecstatic-allen-kiy9we`, created from `dev` at `c8db5da` (merge of PR #14, the empty `src/`/`tb/` scaffold + `docs/ARCHITECTURE_DECISIONS.md`); not merged |
+| Pull request | into `dev`, opened at the owner's request (D-012); link added once opened |
+| Approved tools | T1 slang via pyslang 12.1.0 and T3 UVM 1.2 mirror (D-011), elaboration only; reinstall in each new container with the commands in `WORK_STATUS.md`; T5 not approved |
 | `main` | older flat AXI code (`3348717`); behind `dev` |
 | Template sources | `apb_uvc` `dev` at `b406d6a`; `AHB-UVC` `dev` at `73f7d33` (its adaptation of the APB templates) |
 | New work starts on | this branch until the owner merges it; then a feature branch from `dev` (GIT-01) |
 | Commit identity | Mahantha Deeksha S B, owner's email (GIT-07); AI only as `Co-Authored-By` |
 
-## 2. What the first session did (2026-11-01 → 2026-11-02)
+## 2. What the sessions did
+
+### First session (2026-11-01 → 2026-11-02)
 
 **Request (D-001):** "Can u branch out from dev and refer apb and ahb uvc repo and refactor the axi uvc where ever needed".
 
@@ -27,18 +31,28 @@
 - **AXI UVC M1** in `poc/axi_uvc/` — 49 SV/SVH files, 4 filelists, 2 scripts, README: both roles (Manager, Subordinate), AXI4 + AXI4-Lite by configuration, passive monitor that reconstructs any AXI4 traffic (details in §4).
 - **APB-005 gaps closed from the start** (as for AHB): passive-agent test, reset-in-the-middle test, reset events in the observe API (RST-4).
 
+### Second session (2026-11-02)
+
+**Request (D-011, D-012):** "yes please" to installing pyslang and UVM 1.2 as approved for APB; "create a PR to dev"; follow the branch/commit naming rules; keep the status files ready for a hand-over.
+
+**Delivered:**
+- **First elaboration of the AXI sources** with the approved slang 12.1.0 (+ UVM 1.2), on `1757553`, clean tree: HDL smoke **errors=0 warnings=0** (`evidence/AXI-003/`); full UVM POC **0 errors and 0 warnings in the AXI sources** — the run still reports 1 error + 2 warnings inside UVM 1.2 (`MissingTimeScale`, RISK-012), exactly as for APB (`evidence/AXI-004/`). No source change was needed.
+- **Commit-message audit** (`WORK_STATUS.md`): Conventional Commits, `Refs:` footers and the owner identity on all 11 commits; branch name deviates from GIT-01 (session-fixed, D-010); two first lines are 73 characters (subjects 54/59 — within GIT-02 as written, one over if the whole line counts), not rewritten (GIT-04).
+- Status, decisions and risks updated (D-011, D-012; RISK-001/010/011/012/015); pull request into `dev` opened.
+
 **Not done / not verified:**
-- **Nothing compiled, elaborated or simulated.** No tool is approved for this repository (D-003) and the container has no HDL tool. Seven defects were found by static review and fixed (`WORK_STATUS.md`), which says nothing about what a compiler will find.
+- **Nothing simulated.** slang only parses and elaborates; the HDL smoke, the four fault runs and the seven UVM tests need a simulator (T4, owner on EDA Playground). Elaboration says nothing about run-time behaviour.
+- **A clean UVM elaboration needs T5** (`--timescale 1ns/1ps`), which is not approved (RISK-012).
 - **Spec citations by section title** (RISK-013): `documentation-service.arm.com` was blocked by the session's network policy; key rules were confirmed through secondary sources (marked ✓). To let a session read the PDF, allow that host under *Network access* in the cloud environment settings.
 - **Owner confirmation needed** for S-1..S-6 (changes to parts of the PR #14 decisions) and Q1–Q7.
 
 ## 3. Owner rules in force (full text: `DECISION_LOG.md`, `CODING_GUIDELINES.md`)
 
 1. Follow `CODING_GUIDELINES.md` for every change; tick its §13 checklist before committing (D-005); required comments (D-006).
-2. **No simulator/compiler/elaborator/lint run, and no tool option, without explicit owner approval** of tool, version and commands (D-003). Mark everything else **NOT RUN**.
+2. **No simulator/compiler/elaborator/lint run, and no tool option, without explicit owner approval** of tool, version and commands (D-003). **Approved: T1 (pyslang 12.1.0) and T3 (UVM 1.2 mirror) with their exact commands only (D-011)**; T5 is not approved. Mark everything else **NOT RUN**.
 3. **No tool-specific workarounds** — generic IEEE 1800-2017 SystemVerilog/UVM only (D-002).
 4. The AXI decisions A-1..A-11 stay in force (D-009); `docs/ARCHITECTURE_DECISIONS.md` is append-only; root `scripts/` untouched.
-5. No force-push, no merge into `dev`/`main`, no PR unless the owner asks; Conventional Commits `<type>(axi-uvc): …`.
+5. No force-push, no merge into `dev`/`main`, no PR unless the owner asks (the PR into `dev` was asked, D-012); Conventional Commits `<type>(axi-uvc): …`, whole first line ≤ 72 characters.
 6. Record owner decisions in `DECISION_LOG.md` immediately; keep `WORK_STATUS.md` and this summary current before a session ends (D-008).
 
 ## 4. AXI UVC cheat-sheet
@@ -70,9 +84,9 @@
 
 ## 5. Next steps (in order)
 
-1. **Owner decisions:** confirm or reject S-1..S-6 (`DECISION_LOG.md`), review Q1–Q7 (`AXI_PROTOCOL_CONTRACT.md` §12), and answer the toolchain request in `WORK_STATUS.md`: **T1** slang via pyslang, **T3** UVM 1.2 from `github.com/gchinna/uvm-1.2`, **T5** slang `--timescale 1ns/1ps` (expected to be needed, RISK-012). T4 = owner runs the EDA Playground bundles.
-2. If T1/T3 are approved: elaborate `axi_hdl_smoke.f`, then `axi_poc.f` with UVM; store logs under `docs/dv-architecture/evidence/AXI-003/` / `AXI-004/`; fix source bugs generically (watch list in `WORK_STATUS.md`).
-3. Run the eight flows on a simulator (owner, EDA Playground) and record the results; one run against an independent AXI model (RISK-016).
+1. **Owner decisions:** review the pull request into `dev`; confirm or reject S-1..S-6 (`DECISION_LOG.md`); review Q1–Q7 (`AXI_PROTOCOL_CONTRACT.md` §12); decide **T5** (slang `--timescale 1ns/1ps`, RISK-012).
+2. If T5 is approved: in a new container repeat the T1/T3 installs (`WORK_STATUS.md` *Toolchain approval request*), run the T1 UVM command with `--timescale 1ns/1ps`, and store the log in `docs/dv-architecture/evidence/AXI-004/`.
+3. Run the eight flows on a simulator (owner, EDA Playground, T4) and record the results; one run against an independent AXI model (RISK-016).
 4. Spec citation check against IHI 0022 (RISK-013).
 5. Independent ChatGPT/Gemini reviews of one pinned commit (AXI-006).
 6. Then M2 (several outstanding transactions, reordering/interleaving, exclusive monitor, user signals).
@@ -82,21 +96,24 @@
 ```text
 Continue the AXI UVC work in MAHANTHADEEKSHA-SB/axi_uvc (templates: MAHANTHADEEKSHA-SB/apb_uvc and
 MAHANTHADEEKSHA-SB/AHB-UVC).
-1. git fetch origin; the work is on claude/ecstatic-allen-kiy9we (from dev c8db5da) unless it was merged into dev.
+1. git fetch origin; the work is on claude/ecstatic-allen-kiy9we (from dev c8db5da, pull request into dev) unless
+   it was merged into dev.
    Start new work on that branch or on a feature branch from dev (or the branch this session designates). Set the
    commit identity first:
    git config user.name "Mahantha Deeksha S B" && git config user.email "$(git log origin/dev --author='Mahantha Deeksha S B' --format='%ae' -1)"
 2. Read docs/dv-architecture/SESSION_SUMMARY.md, then follow the read order in docs/dv-architecture/AGENTS.md
    (DECISION_LOG incl. A-1..A-11 and S-1..S-6, CODING_GUIDELINES, contract, ADRs, AXI_PROTOCOL_CONTRACT,
    WORK_STATUS "Resume here", REVIEW_FEEDBACK).
-3. Rules: no simulator/compiler/elaborator/lint without my explicit approval of tool, version and commands; no
+3. Rules: no simulator/compiler/elaborator/lint without my explicit approval of tool, version and commands (approved:
+   T1 pyslang 12.1.0 and T3 UVM 1.2 with the exact commands in WORK_STATUS.md, D-011; T5 not approved); no
    tool-specific workarounds; root scripts/ untouched; docs/ARCHITECTURE_DECISIONS.md append-only; mark everything
    not executed as NOT RUN; follow CODING_GUIDELINES.md and its checklist.
-4. Next task: <write it here, e.g. "S-1..S-6 confirmed; T1 and T3 are approved: elaborate the HDL smoke, then the UVM POC">.
+4. Next task: <write it here, e.g. "S-1..S-6 confirmed; T5 approved: reinstall T1/T3 and rerun the UVM elaboration">.
 ```
 
 ## 7. Session log (append one row per session)
 
 | Date | Session / branch | Summary | Result commit |
 |---|---|---|---|
-| 2026-11-01 → 2026-11-02 | `claude/ecstatic-allen-kiy9we` (from `dev` `c8db5da`) | Empty scaffold of PR #14 refactored onto the APB/AHB architecture; AXI UVC M1 with both roles written; governance docs adapted; nothing compiled (no tool approved) | branch HEAD (not merged) |
+| 2026-11-01 → 2026-11-02 | `claude/ecstatic-allen-kiy9we` (from `dev` `c8db5da`) | Empty scaffold of PR #14 refactored onto the APB/AHB architecture; AXI UVC M1 with both roles written; governance docs adapted; nothing compiled (no tool approved) | `1757553` |
+| 2026-11-02 | same branch | T1/T3 approved (D-011): first slang elaboration — HDL smoke 0/0, UVM POC 0 diagnostics in the AXI sources, 1 error in UVM 1.2 (RISK-012); commit audit; pull request into `dev` (D-012) | branch HEAD (not merged) |
