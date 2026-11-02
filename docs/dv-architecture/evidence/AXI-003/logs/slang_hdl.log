@@ -1,0 +1,7 @@
+$ python3 -I poc/axi_uvc/scripts/slang_elab.py -F poc/axi_uvc/filelists/axi_hdl_smoke.f --top axi_hdl_smoke
+SHA 1757553965de57703e26b1c7a59ae06f3231d07c dirty=no
+SLANG_RESULT: errors=0 warnings=0 slang=12.1.0+42710c788
+Top level design units:
+    axi_hdl_smoke
+
+exit=0
