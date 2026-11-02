@@ -384,7 +384,9 @@ interface axi_subordinate_bfm_if
   // requests that were accepted (AW, W, AR) and write pairing, the next B/R
   // drive step, then the READY values for the next cycle. Consumes no time.
   // Nothing happens in reset (the queues were dropped when it asserted) or while
-  // the BFM is released.
+  // the BFM is released. The live ARESETn is checked as well as the sampled one:
+  // a reset that asserts in this very time step, before this process runs, must
+  // not be overridden by drive values computed from the pre-reset sample (RST-1).
   task automatic sample_cycle();
     bit lite;
     bit aw_hs;
@@ -392,7 +394,7 @@ interface axi_subordinate_bfm_if
     bit ar_hs;
     bit r_hs;
     bit pushed;
-    if (cb.ARESETn !== 1'b1 || !drive_en) return;
+    if (cb.ARESETn !== 1'b1 || ARESETn !== 1'b1 || !drive_en) return;
     lite   = (features.protocol == AXI4_LITE);
     pushed = 1'b0;
 
