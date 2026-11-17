@@ -10,6 +10,10 @@
 //   SLVERR and DECERR) for axi_lite_test.
 // axi_long_write_seq: one 64-beat INCR write, long enough to be cut by a
 //   reset (axi_reset_test).
+// axi_prompt_write_seq: one single-beat write with every start delay 0, so a
+//   Manager that restarts too early after a reset is caught at the first edge
+//   (axi_reset_test, RST-5).
+// axi_single_read_seq: one single-beat read whose item the test inspects.
 // axi_unfit_seq: a write whose data and one whose ID do not fit the bus, to
 //   prove the drive adapter rejects them instead of truncating (RISK-003).
 // Addresses fit both instances (aligned to 8 bytes unless stated, inside one
@@ -146,6 +150,56 @@ class axi_long_write_seq extends axi_mgr_base_seq;
   endtask
 
 endclass : axi_long_write_seq
+
+
+// Reset-test helper: one full-width single-beat write that offers AWVALID and
+// WVALID in the time step the driver takes it (no start delay on either channel).
+// A Manager that restarts before the first ACLK edge after reset then shows a
+// VALID at that edge, which the monitors report (AXI-R21, RST-5). The completed
+// item is kept in result.
+class axi_prompt_write_seq extends axi_mgr_base_seq;
+  `uvm_object_utils(axi_prompt_write_seq)
+
+  logic [AXI_MAX_AW-1:0] addr = 'h700;
+  axi_transaction        result;
+
+  function new(string name = "axi_prompt_write_seq");
+    super.new(name);
+  endfunction
+
+  // One beat at addr with addr_delay, data_delay and resp_ready_delay 0.
+  virtual task body();
+    result = new_item("prompt_write");
+    start_item(result);
+    if (!result.randomize() with { dir == AXI_WRITE; addr == local::addr;
+                                   burst == AXI_BURST_INCR; size == bus_max_size; len == 1;
+                                   id == 0; addr_delay == 0; data_delay[0] == 0;
+                                   resp_ready_delay == 0; })
+      `uvm_fatal("AXI_SEQ", $sformatf("cannot randomize the prompt write @%0h", addr))
+    finish_item(result);
+  endtask
+
+endclass : axi_prompt_write_seq
+
+
+// Reset-test helper: one full-width single-beat read; the completed item is kept
+// in result so the test can check what the Subordinate's memory returned.
+class axi_single_read_seq extends axi_mgr_base_seq;
+  `uvm_object_utils(axi_single_read_seq)
+
+  logic [AXI_MAX_AW-1:0] addr = '0;
+  axi_transaction        result;
+
+  function new(string name = "axi_single_read_seq");
+    super.new(name);
+  endfunction
+
+  // One beat at addr.
+  virtual task body();
+    do_read(addr, result);
+  endtask
+
+endclass : axi_single_read_seq
 
 
 // Negative-test helper: one write whose data and one whose ID exceed the bus.

@@ -2,7 +2,7 @@
 
 One reusable AXI UVC with both roles of the bus — **Manager** (master) and **Subordinate** (slave) — and a passive monitor. Two instances of the same source — **AW=32/DW=32/ID 4/4** and **AW=40/DW=64/ID 6/5** — run side by side to show width independence (ADR-001 decision 3). On each bus the UVC's Manager agent and Subordinate agent face each other, so no separate example Subordinate is needed. A third, **passive** instance P observes bus A with a monitor BFM plus a Manager BFM and a Subordinate BFM that are never enabled.
 
-**Status:** milestone M1 sources for HDL, HVL API, adapters, UVM agents, HVL top and tests are written as **portable IEEE 1800-2017 SystemVerilog/UVM with no tool-specific code paths**. **Elaborated, not simulated:** with the owner-approved slang 12.1.0 and UVM 1.2 (T1/T3), the HDL smoke elaborates with 0 errors and 0 warnings, and the full UVM POC with **0 diagnostics in the AXI sources** — the run still reports one error inside UVM 1.2 itself, its missing time scale (RISK-012). Nothing has been simulated. Evidence: `../../docs/dv-architecture/evidence/AXI-003/` and `AXI-004/`; status and known gaps: `../../docs/dv-architecture/WORK_STATUS.md`.
+**Status:** milestone M1 sources for HDL, HVL API, adapters, UVM agents, HVL top and tests are written as **portable IEEE 1800-2017 SystemVerilog/UVM with no tool-specific code paths**. **Elaborated, not simulated:** with the owner-approved slang 12.1.0 and UVM 1.2 (T1/T3), the HDL smoke elaborates with 0 errors and 0 warnings, and the full UVM POC with **0 diagnostics in the AXI sources** — the run still reports one error inside UVM 1.2 itself, its missing time scale (RISK-012). Nothing has been simulated. A review of the whole flow (AXI-008) fixed three run-time defects in the Manager BFM — reset exit and handshake detection — that elaboration could not show; those fixes are unverified until a simulator runs `axi_reset_test` and the HDL smoke. Evidence: `../../docs/dv-architecture/evidence/AXI-003/`, `AXI-004/` and `AXI-008/`; findings: `../../docs/dv-architecture/REVIEW_FEEDBACK.md`; status and known gaps: `../../docs/dv-architecture/WORK_STATUS.md`.
 
 Governing documents: `../../docs/dv-architecture/` — `DECISION_LOG.md` (owner decisions, including the AXI decisions A-1..A-11 and how each maps onto this layout), `CODING_GUIDELINES.md` (mandatory coding standard), `AXI_PROTOCOL_CONTRACT.md` (pins, rules, reset, transaction), `ARCHITECTURE_CONTRACT.md`, ADR-001, ADR-002, `WORK_STATUS.md`. They were adapted from the `apb_uvc` (`dev`, `b406d6a`) and `AHB-UVC` (`dev`, `73f7d33`) repositories.
 
@@ -110,8 +110,8 @@ Build an `axi_mgr_agent` or `axi_sub_agent` at that path. A Subordinate agent an
 |---|---|---|
 | Manager | `configure(axi_features_t)` → bit | protocol mode; 0 = rejected |
 | Manager | `set_enable(bit)` | 0 releases every output to `'z` (passive instance) |
-| Manager | `wait_for_reset_release(idle_cycles)` | RST-5 |
-| Manager | `do_write(...)` / `do_read(...)` | one transaction; returns BRESP or per-beat RDATA/RRESP, the ID, beats done, wait counts, `axi_bfm_status_e` |
+| Manager | `wait_for_reset_release(idle_cycles)` | RST-5: returns after an `ACLK` edge has sampled `ARESETn` HIGH while it is still HIGH, plus `idle_cycles` edges |
+| Manager | `do_write(...)` / `do_read(...)` | one transaction; returns BRESP or per-beat RDATA/RRESP, the ID, beats done, wait counts, `axi_bfm_status_e`. May be called at any time: handshakes are taken from the sampled pins, and nothing is offered before the first `ACLK` edge after reset (in reset the call ends `RESET_ABORTED`) |
 | Manager | `set_fault(axi_fault_e)` | deliberate protocol faults 1..3 for negative tests |
 | Subordinate | `configure(...)`, `set_enable(...)`, `set_ready_delays(aw, w, ar)` | protocol mode, release, READY policy (POL-06) |
 | Subordinate | `get_request(...)` | blocking; next complete request (write: with its data and strobes) |
@@ -133,7 +133,7 @@ Inside this repository's AI workflow, no simulator, compiler, elaborator or lint
 | UVM cfg legality | same | same | `+UVM_TESTNAME=axi_cfg_negative_test` | `TEST_RESULT: PASS` |
 | UVM width boundary | same | same | `+UVM_TESTNAME=axi_width_negative_test` | `TEST_RESULT: PASS` |
 | UVM passive agent | same | same | `+UVM_TESTNAME=axi_passive_test` | `TEST_RESULT: PASS` |
-| UVM reset mid-write | same | same | `+UVM_TESTNAME=axi_reset_test` | `TEST_RESULT: PASS` |
+| UVM reset (mid-write, then between items) | same | same | `+UVM_TESTNAME=axi_reset_test` | `TEST_RESULT: PASS` |
 | UVM AXI4-Lite mode | same | same | `+UVM_TESTNAME=axi_lite_test` | `TEST_RESULT: PASS` |
 
 Language features the sources rely on: 4-state nets with `'z` release on interface nets, clocking blocks with `#1step` input skew, `fork…join_any` with `disable fork` in interface tasks, named events, queues of unpacked structs holding fixed-size arrays (and writes to members of their elements), fixed-size unpacked arrays as task and function arguments, functions with `ref` arguments in a class (smoke test), parameterized classes holding parameterized virtual-interface types, embedded covergroups (also in derived classes), a class declared in a module that calls a task through a hierarchical reference (test helper only), and UVM 1.2 or IEEE 1800.2.

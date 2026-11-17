@@ -1,28 +1,28 @@
 # WORK_STATUS — single AXI UVC handoff checkpoint
 
-**Checkpoint date:** 2026-11-02 (end of the second session: approved elaboration + pull request into `dev`; resume in a new session from *Resume here* — `SESSION_SUMMARY.md` has the one-page overview and a new-chat start prompt)
+**Checkpoint date:** 2026-11-17 (end of the third session: review of the whole flow at the owner's request, D-014, with fixes; resume in a new session from *Resume here* — `SESSION_SUMMARY.md` has the one-page overview and a new-chat start prompt)
 **Repository:** https://github.com/MAHANTHADEEKSHA-SB/axi_uvc
-**Branch:** `claude/ecstatic-allen-kiy9we`, created from **`dev` at `c8db5daf5275915ddc80c3933ae55cb11acae95a`** (the merge of PR #14, "Refactor/uvc src layout") as the owner asked ("branch out from dev", D-001, D-010). Not merged; at the owner's request (D-012) pull request [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) into `dev` is open.
+**Branch:** `claude/ecstatic-allen-kiy9we`, created from **`dev` at `c8db5daf5275915ddc80c3933ae55cb11acae95a`** (the merge of PR #14) as the owner asked (D-001, D-010). Pull request [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) was **squash-merged into `dev` as `33f2044e392e98345396e4e6ffdedfa871e93522`** by the owner on 2026-11-02 (D-013). The branch continues after it: `dev` merged back in (`fe6bbc2`, no file change), then the AXI-008 review commits (`3697f13`, `d40f727` and the documentation commits after them). **These follow-up commits are not in `dev`; pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) into `dev` is open for them** (D-015), not merged. Its commit list repeats the 14 commits of #15 (squash-merged, so `dev` does not contain them) and the merge commit; its diff is only the AXI-008 work.
 **Template sources:** `https://github.com/MAHANTHADEEKSHA-SB/apb_uvc` `dev` at `b406d6a9c75aca158671f304257ce9a5ba346710`, and `https://github.com/MAHANTHADEEKSHA-SB/AHB-UVC` `dev` at `73f7d33` (merge of its PR #8; the AHB adaptation of the APB templates)
 **Current commit SHA:** read actual `git rev-parse HEAD`; this file cannot self-reference its own commit.
 **Working tree:** UNKNOWN for local clones; verify before changing code.
-**Phase:** the empty `src/`/`tb/` scaffold of PR #14 refactored onto the APB/AHB architecture: governance docs adapted for AXI; M1 sources for steps 2–6 **written and commented** (HDL, HVL API, adapters, UVM agents of both roles, HVL top, HDL smoke, seven UVM tests) as portable IEEE 1800-2017 SystemVerilog/UVM following `CODING_GUIDELINES.md`. **Elaborated with the owner-approved slang 12.1.0 + UVM 1.2 (T1/T3, D-011) with 0 diagnostics in the AXI sources; nothing simulated.**
-**Tool results:** slang 12.1.0 at `1757553` (clean tree): HDL smoke **PASS** errors=0 warnings=0 (`evidence/AXI-003/`); UVM POC errors=1 warnings=2, **all inside UVM 1.2** — `MissingTimeScale`, RISK-012 — and 0 in the AXI sources (`evidence/AXI-004/`). No simulation. See *Validation evidence*.
+**Phase:** M1 of the AXI UVC is on `dev` (HDL, HVL API, adapters, UVM agents of both roles, HVL top, HDL smoke, seven UVM tests; governance docs). **Elaborated with the owner-approved slang 12.1.0 + UVM 1.2 (T1/T3, D-011) with 0 diagnostics in the AXI sources; nothing simulated.** A review of the whole flow (AXI-008) found three run-time defects in the Manager BFM by reading the code — reset exit and handshake detection, RV-001..RV-003 — which are fixed on the branch and **unverified**.
+**Tool results:** slang 12.1.0 at `d40f727` (clean tree, after the AXI-008 fixes): HDL smoke **PASS** errors=0 warnings=0; UVM POC errors=1 warnings=2, **all inside UVM 1.2** — `MissingTimeScale`, RISK-012 — and 0 in the AXI sources (`evidence/AXI-008/`; the same results as at `1757553`, `evidence/AXI-003/`, `AXI-004/`). No simulation. See *Validation evidence*.
 **Next implementer:** Claude or another authorized model/engineer.
-**Active task:** none in progress. Next: the owner reviews the pull request into `dev`, decides S-1..S-6 (`DECISION_LOG.md`), Q1–Q7 (`AXI_PROTOCOL_CONTRACT.md` §12) and T5 (below), and runs the simulation flows (T4).
+**Active task:** none in progress. Next: the owner reviews pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) (the AXI-008 commits), reads RV-005..RV-013 (`REVIEW_FEEDBACK.md`), decides S-1..S-6, Q1–Q7 and T5, and runs the simulation flows (T4) — **the run of `axi_reset_test` and of the HDL smoke is what can confirm or refute the AXI-008 fixes**.
 **Spec reference:** Arm AMBA AXI Protocol Specification, ARM IHI 0022 (Manager/Subordinate terminology since Issue H.b; latest issues K, September 2023, and L, August 2025). The PDF is Arm copyright and is not committed here; citations are by section title (RISK-013).
 
 > Do not trust this status without comparing it to the real files, current Git SHA, and logs. Any difference must be reconciled explicitly.
 
 ## Resume here (new session, other model or engineer)
 
-1. `git fetch origin && git status --short && git log --oneline -15 origin/claude/ecstatic-allen-kiy9we`. If the branch was merged into `dev`, create the next task branch from `dev` (`git switch -c feature/axi-<id>-<short-description>`) unless the session designates a branch. Then set the commit identity to the owner before any commit (D-007, GIT-07): `git config user.name "Mahantha Deeksha S B" && git config user.email "$(git log origin/dev --author='Mahantha Deeksha S B' --format='%ae' -1)"`.
+1. `git fetch origin && git status --short && git log --oneline -15 origin/claude/ecstatic-allen-kiy9we`. Check whether the AXI-008 commits are in `dev` (`git log origin/dev..origin/claude/ecstatic-allen-kiy9we`). New work continues on the session branch, or on a task branch from `dev` (`git switch -c feature/axi-<id>-<short-description>`) when the session does not designate one. If `dev` has moved, bring it in with a merge commit (GIT-01); never force-push — a squash merge of a pull request is handled the same way (D-014). Then set the commit identity to the owner before any commit (D-007, GIT-07): `git config user.name "Mahantha Deeksha S B" && git config user.email "$(git log origin/dev --author='Mahantha Deeksha S B' --format='%ae' -1)"`.
 2. Read in order: `SESSION_SUMMARY.md` (orientation) → `AGENTS.md` (root) → `docs/dv-architecture/AGENTS.md` → **`DECISION_LOG.md`** → **`CODING_GUIDELINES.md`** (mandatory standard + pre-commit checklist) → `ARCHITECTURE_CONTRACT.md` → ADR-001 → ADR-002 → `AXI_PROTOCOL_CONTRACT.md` → this file → `REVIEW_FEEDBACK.md` → `poc/axi_uvc/README.md`.
 3. **Owner rules in force** (full list and sources in `DECISION_LOG.md`):
    - **Every code change follows `CODING_GUIDELINES.md`** and its §13 checklist is ticked before commit (D-005, D-006).
-   - **No tool execution** (simulator, compiler, elaborator, lint) without explicit owner approval of tool, version, commands **and options** (D-003). **Approved for this repository (D-011): T1** (slang via pyslang 12.1.0) and **T3** (UVM 1.2 from the owner-named mirror), with the exact commands in *Toolchain approval request*; **T5 and everything else are not approved**.
+   - **No tool execution** (simulator, compiler, elaborator, lint) without explicit owner approval of tool, version, commands **and options** (D-003). **Approved for this repository (D-011): T1** (slang via pyslang 12.1.0) and **T3** (UVM 1.2 from the owner-named mirror), with the exact commands in *Toolchain approval request*; **T5 and everything else are not approved**. General freedom to change the code (D-014) is not a tool approval.
    - **No tool-specific workarounds:** no `` `ifdef <TOOL> ``, tool pragmas or tool-motivated rewrites (D-002). Log tool shortfalls in `REVIEW_FEEDBACK.md` instead.
-   - The AXI decisions **A-1..A-11** (`DECISION_LOG.md` D-009) stay in force: both roles, AXI4 + AXI4-Lite by configuration, shared transaction, per-role sequencers and coverage, no scoreboard in the core. The proposals **S-1..S-6** that change parts of them await the owner.
+   - The AXI decisions **A-1..A-11** (`DECISION_LOG.md` D-009) stay in force: both roles, AXI4 + AXI4-Lite by configuration, shared transaction, per-role sequencers and coverage, no scoreboard in the core. The proposals **S-1..S-6** that change parts of them are implemented on `dev` (merged with PR #15, D-013) and still await the owner's explicit yes or no.
    - Width set A: AW=32/DW=32/ID 4/4, B: AW=40/DW=64/ID 6/5; passive observer P on bus A (Q3, proposed).
    - Do not touch the owner's root `scripts/`; `docs/ARCHITECTURE_DECISIONS.md` is append-only. No force-push, no merge into `dev`/`main`.
    - Mark every unexecuted stage **NOT RUN**.
@@ -50,13 +50,13 @@ Deliver **one reusable AXI UVC** with a Manager and a Subordinate role, rooted a
 
 ## Source manifest
 
-All paths under `poc/axi_uvc/`. Everything elaborates with slang (`evidence/AXI-003/`, `AXI-004/`); nothing is simulated.
+All paths under `poc/axi_uvc/`. Everything elaborates with slang (`evidence/AXI-003/`, `AXI-004/`, and `AXI-008/` for the state after the flow review); nothing is simulated.
 
 | Path | Content | Status |
 |---|---|---|
 | `hdl/axi_bfm_pkg.sv` | Shared enums (protocol mode, AxBURST/AxSIZE/xRESP, status, fault, monitor errors), feature struct, `axi_beat_addr()`, `axi_lane_mask()`, 4KB/exclusive/AxCACHE legality, protocol/milestone checks; no UVM | WRITTEN |
 | `hdl/axi_if.sv` | AXI4 + AXI4-Lite pin superset of the five channels, modports (manager, subordinate, monitor), width legality checks | WRITTEN |
-| `hdl/axi_manager_bfm_if.sv` | Manager BFM: `do_write()`/`do_read()` per-edge state machines, AW/W independent, BREADY/RREADY back-pressure, one write + one read in flight, `'z` release, reset abort, 3 fault modes | WRITTEN_M1 |
+| `hdl/axi_manager_bfm_if.sv` | Manager BFM: `do_write()`/`do_read()` per-edge state machines, AW/W independent, BREADY/RREADY back-pressure, one write + one read in flight, `'z` release, reset abort, 3 fault modes. AXI-008: handshakes from the sampled pins (own VALID/READY included), no VALID before the first edge after reset (`rst_done`, `wait_reset_recovery()`), reset release checked on the live `ARESETn` too | WRITTEN_M1, changed by AXI-008 (unverified) |
 | `hdl/axi_subordinate_bfm_if.sv` | Subordinate BFM: READY policy, AW/W pairing, request queue, `get_request()`, `put_write/read_response()`, in-order B/R drive, reset epoch, RLAST fault mode | WRITTEN_M1 |
 | `hdl/axi_monitor_bfm_if.sv` | Passive BFM: clocking-block sampling, reconstruction of any AXI4 traffic, 22 checks, bounded queues, `get_txn()`, `get_reset_event()`, `get_open_count()` | WRITTEN_M1 |
 | `hvl/types/axi_defines.svh` | `AXI_MAX_ADDR_WIDTH` 64, `AXI_MAX_DATA_WIDTH` 64, `AXI_MAX_ID_WIDTH` 8 | WRITTEN |
@@ -73,9 +73,9 @@ All paths under `poc/axi_uvc/`. Everything elaborates with slang (`evidence/AXI-
 | `hvl/coverage/axi_coverage.sv`, `axi_mgr_coverage.sv`, `axi_sub_coverage.sv` | Common coverage + `sample_coverage()` hook (A-9), per-role coverage (A-5) | WRITTEN |
 | `hvl/sequences/axi_base_seq.sv`, `axi_mgr_base_seq.sv`, `axi_mgr_random_seq.sv`, `axi_sub_base_seq.sv`, `axi_sub_mem_seq.sv` | Bus-context items, Manager helpers, random Manager traffic, reactive response base, memory responder | WRITTEN |
 | `hvl/pkg/axi_api_pkg.sv`, `axi_uvc_pkg.sv`, `axi_adapter_pkg.sv` | Packages (compile in this order after HDL + uvm_pkg) | WRITTEN |
-| `examples/axi_hdl_top.sv` | Instances A + B (Manager, Subordinate, two monitor BFMs each, own clocks/resets); passive set P on bus A; `pulse_reset_a/b` | WRITTEN |
+| `examples/axi_hdl_top.sv` | Instances A + B (Manager, Subordinate, two monitor BFMs each, own clocks/resets); passive set P on bus A; `pulse_reset_a/b` (AXI-008: length independent of process order) | WRITTEN |
 | `examples/axi_hvl_top.sv` | Explicit adapter construction, one cfg per agent (P passive, A's Subordinate with READY back-pressure), single `uvm_config_db::set` each, reset helper, `run_test` | WRITTEN |
-| `tests/axi_hdl_smoke.sv` | HDL-only directed + fault smoke (no UVM) on A and B, AXI4-Lite phase on B, P and Subordinate-monitor checks | WRITTEN |
+| `tests/axi_hdl_smoke.sv` | HDL-only directed + fault smoke (no UVM) on A and B, AXI4-Lite phase on B, P and Subordinate-monitor checks; AXI-008: a write and a read called on a raw clock edge | WRITTEN |
 | `tests/axi_poc_test_pkg.sv` + `axi_poc_scoreboard.sv`, `axi_poc_env.sv`, `axi_poc_seqs.sv`, `axi_fake_proxies.sv`, `axi_poc_reset_ctrl.sv`, `axi_poc_test.sv`, `axi_fault_injection_test.sv`, `axi_negative_tests.sv`, `axi_passive_reset_tests.sv`, `axi_lite_test.sv` | UVM POC env with responders, cross-agent scoreboard (A-5 system checker), seven tests | WRITTEN |
 | `filelists/axi_hdl.f`, `axi_hvl.f`, `axi_hdl_smoke.f`, `axi_poc.f` | Compile order; use `-F` | WRITTEN |
 | `scripts/slang_elab.py`, `scripts/make_eda_bundle.py` | Copied unchanged from the AHB POC (= APB); running the first needs approval, the second is text processing | WRITTEN |
@@ -87,13 +87,13 @@ Removed: the 30 empty placeholder files of PR #14 under `src/` and `tb/` (0 byte
 
 | Flow | Top(s) | Test / plusargs | Pass criterion |
 |---|---|---|---|
-| HDL smoke (no UVM) | `axi_hdl_smoke` | none; `+AXI_FAULT=1\|2\|3\|4` for negatives | line `SMOKE_RESULT: PASS` |
+| HDL smoke (no UVM) | `axi_hdl_smoke` | none; `+AXI_FAULT=1\|2\|3\|4` for negatives | line `SMOKE_RESULT: PASS`; includes a write and a read called on a raw clock edge (RV-003) |
 | UVM POC | `axi_hdl_top` + `axi_hvl_top` | `+UVM_TESTNAME=axi_poc_test` | `TEST_RESULT: PASS (0 errors)` |
 | UVM fault injection | same | `+UVM_TESTNAME=axi_fault_injection_test +AXI_FAULT=1\|2\|3\|4` | `TEST_RESULT: PASS` (A's monitors and P detected, B clean) |
 | UVM cfg legality | same | `+UVM_TESTNAME=axi_cfg_negative_test` | `TEST_RESULT: PASS`; 17 verdict lines `ok:` |
 | UVM width boundary | same | `+UVM_TESTNAME=axi_width_negative_test` | `TEST_RESULT: PASS` (unfit data and ID rejected, nothing on the bus) |
 | UVM passive agent | same | `+UVM_TESTNAME=axi_passive_test` | `TEST_RESULT: PASS`; P identical to mgr_a |
-| UVM reset mid-write | same | `+UVM_TESTNAME=axi_reset_test` | `TEST_RESULT: PASS`; RESET_ABORTED, 1 reset, model cleared, B unaffected |
+| UVM reset (mid-write and between items) | same | `+UVM_TESTNAME=axi_reset_test` | `TEST_RESULT: PASS`; cut write RESET_ABORTED, the write issued during reset 1 and the one issued at the release of reset 2 both OK with no `VALID_IN_RESET` (RV-001, RV-002), 2 resets, model and responder memory cleared, B unaffected |
 | UVM AXI4-Lite mode | same | `+UVM_TESTNAME=axi_lite_test` | `TEST_RESULT: PASS`; bus B in AXI4-Lite next to AXI4 on A |
 
 ## Static self-review done (2026-11-01 → 2026-11-02, no tool)
@@ -117,6 +117,15 @@ Removed: the 30 empty placeholder files of PR #14 under `src/` and `tb/` (0 byte
 | 5 | `axi_subordinate_bfm_if::sample_cycle()` | A reset asserting exactly on an `ACLK` edge could leave BVALID/RVALID driven in reset, depending on process order | Live `ARESETn` checked too; commit `41a153a` |
 | 6 | Source comments | Owner-decision IDs A-2/A-3 cited for two different decisions | IDs fixed against `DECISION_LOG.md` (A-8, A-9) |
 | 7 | `axi_manager_bfm_if::beat_strobe()` | `inout` function argument used inside another call's argument list (legal but unusual) | Plain return value; before the first commit |
+
+**Flow review AXI-008 (2026-11-16 → 2026-11-17, owner request D-014).** Every source file was re-read and the stimulus, response, observe, reset, configuration and end-of-test flows were traced by hand against the scheduling rules. The code had elaborated cleanly; these are run-time defects that elaboration cannot show (details and the unchanged suggestions RV-005..RV-013 in `REVIEW_FEEDBACK.md`):
+
+| # | Where | Defect | Fix |
+|---|---|---|---|
+| 8 (RV-001) | `axi_manager_bfm_if::wait_for_reset_release()` | A reset asserting in the time step of an `ACLK` edge was still sampled HIGH at that edge and taken for a release: the driver restarted during reset. `axi_reset_test` uses exactly that timing and would very likely have failed (`VALID_IN_RESET`) | Live `ARESETn` checked too; commit `3697f13` |
+| 9 (RV-002) | `axi_manager_bfm_if::do_write()/do_read()` | RST-5 was left to the caller: after a reset between items (the driver cannot see it) a zero-delay item was offered before the first rising edge after reset (AXI-R21) | `rst_done` + `wait_reset_recovery()`; commit `3697f13` |
+| 10 (RV-003) | `axi_manager_bfm_if` per-edge loops | Handshake taken from the drive state: a call in the time step of an `ACLK` edge (delay- or raw-clock-woken) counted that edge when READY was HIGH; the transaction was lost and the two sides fell out of step | Own VALID/READY pins sampled through the clocking block; commit `d40f727` |
+| 11 (RV-004) | `axi_hdl_top::pulse_reset_a/b()` | Reset pulse length depended on process order when called on a rising edge | Edges counted from a falling edge; commit `3697f13` |
 
 ## First-compile watch list (most likely to need attention)
 
@@ -146,18 +155,21 @@ Classify any failure as **source bug**, **standard violation** or **tool limitat
 - AXI4-Lite address alignment is not checked by the monitor (POL-07, rule not verified).
 - Spec citations by title only (RISK-013).
 - Emulation suitability (`fork` in the Manager BFM, strings in BFM messages, dynamic queues, 256-entry arrays) is unassessed (RISK-018).
+- Recorded by the AXI-008 review and **not** changed (`REVIEW_FEEDBACK.md` RV-005..RV-013): the Subordinate BFM never answers in the cycle after a request (RV-005); the monitor reports a VALID at every edge sampled in reset, which a DUT with synchronously reset outputs would trip (RV-006, owner decision); an item that reaches the Manager BFM during reset is aborted, not held (RV-007); a transfer completing on the very edge a reset asserts may be published although its item was abandoned (RV-008); smaller points RV-009..RV-013.
+- The AXI-008 fixes have tests (`axi_reset_test`, the raw-edge calls of the HDL smoke) but **no run**: they are FIXED_UNVERIFIED until a simulator has executed them.
 
 ## Next tasks — in priority order
 
 - [~] **AXI-001 — Review protocol contract and proposals:** drafted in `AXI_PROTOCOL_CONTRACT.md` and `DECISION_LOG.md`; Q1–Q7 and S-1..S-6 implemented as proposed, awaiting owner review.
 - [x] **AXI-002 — Toolchain approval:** T1 and T3 approved on 2026-11-02 (D-011). **T5 still open** (needed for a clean UVM elaboration, RISK-012); T4 is owner-run.
-- [~] **AXI-003 — HDL + compile:** elaboration **PASS** (slang 12.1.0, errors=0 warnings=0, `evidence/AXI-003/`); the HDL smoke simulation and the four fault runs NOT RUN (T4).
+- [~] **AXI-003 — HDL + compile:** elaboration **PASS** (slang 12.1.0, errors=0 warnings=0, `evidence/AXI-003/`, again after the AXI-008 fixes, `evidence/AXI-008/`); the HDL smoke simulation and the four fault runs NOT RUN (T4).
 - [~] **AXI-004 — HVL types/proxies/agents + compile:** elaboration with UVM 1.2 gives **0 diagnostics in the AXI sources**; the run fails on UVM 1.2's own missing time scale (RISK-012) until T5 is decided (`evidence/AXI-004/`).
-- [~] **AXI-005 — Run AXI POC:** eight flows written (*Tests available*); NOT RUN. The owner can run them on EDA Playground (T4).
+- [~] **AXI-005 — Run AXI POC:** eight flows written (*Tests available*); NOT RUN. The owner can run them on EDA Playground (T4). **Highest value now:** `axi_reset_test` and the HDL smoke, which exercise the AXI-008 fixes.
 - [ ] **AXI-006 — Independent reviews:** ChatGPT and Gemini review the same pinned commit, record findings and rerun failing tests; a run against an independent AXI model (RISK-016).
+- [~] **AXI-008 — Flow review (owner request D-014):** done by reading; RV-001..RV-004 fixed on the branch (`3697f13`, `d40f727`), re-elaborated (`evidence/AXI-008/`), **not simulated**; RV-005..RV-013 wait for the owner. Not in `dev`: pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) is open (D-015).
 - [ ] **AXI-007 — Spec citation check (RISK-013):** a reviewer with IHI 0022 confirms section titles/numbers and the wording of AXI-R04/R23/R24/R25.
 
-## Toolchain (this container, 2026-11-02)
+## Toolchain (this container, 2026-11-02; still present on 2026-11-17)
 
 Installed with the approved commands (D-011); the container is ephemeral, so a new session repeats both steps.
 
@@ -170,20 +182,20 @@ Installed with the approved commands (D-011); the container is ephemeral, so a n
 
 ## Validation evidence
 
-Current sources: everything **elaborated** on the approved slang (below); **nothing simulated**. The SystemVerilog sources, filelists and scripts under `poc/axi_uvc/` are unchanged since the evidence commit `1757553`; only the UVC `README.md` changed (check: `git diff --stat 1757553 HEAD -- poc/ ':!poc/axi_uvc/README.md'` is empty).
+Current sources: everything **elaborated** on the approved slang (below); **nothing simulated**. The first two rows are the latest run, on `d40f727` (after the AXI-008 fixes); the runs on `1757553` (the sources that were merged into `dev` as `33f2044`) are kept in `evidence/AXI-003/` and `evidence/AXI-004/`. Commits after `d40f727` change documentation only (check: `git diff --stat d40f727 HEAD -- poc/ ':!poc/axi_uvc/README.md'` is empty).
 
 | Stage | Tool/version | Command | Result | Log | Commit |
 |---|---|---|---|---|---|
-| HDL elaboration (`axi_hdl_smoke`) | slang 12.1.0 (T1, approved) | `python3 -I poc/axi_uvc/scripts/slang_elab.py -F poc/axi_uvc/filelists/axi_hdl_smoke.f --top axi_hdl_smoke` | **PASS** — errors=0 warnings=0 | `evidence/AXI-003/logs/slang_hdl.log` | `1757553` |
+| HDL elaboration (`axi_hdl_smoke`) | slang 12.1.0 (T1, approved) | `python3 -I poc/axi_uvc/scripts/slang_elab.py -F poc/axi_uvc/filelists/axi_hdl_smoke.f --top axi_hdl_smoke` | **PASS** — errors=0 warnings=0 (same result at `1757553`, `evidence/AXI-003/`) | `evidence/AXI-008/logs/slang_hdl.log` | `d40f727` |
 | HDL-only smoke A/B/P + 4 fault runs | — (T4 proposed) | NOT RUN | NOT RUN | — | — |
-| HVL + UVM elaboration (`axi_poc.f`) | slang 12.1.0 + UVM 1.2 mirror `a3cb911` (T1 + T3, approved) | `python3 -I poc/axi_uvc/scripts/slang_elab.py +incdir+<UVM>/src <UVM>/src/uvm_pkg.sv -F poc/axi_uvc/filelists/axi_poc.f --top axi_hdl_top --top axi_hvl_top` | **FAIL (UVM library)** — errors=1 warnings=2, all in UVM 1.2: `MissingTimeScale` (`uvm_pkg.sv:28`), 2 × `-Wempty-body`. **AXI sources: 0 errors, 0 warnings** | `evidence/AXI-004/logs/slang_uvm.log` | `1757553` |
+| HVL + UVM elaboration (`axi_poc.f`) | slang 12.1.0 + UVM 1.2 mirror `a3cb911` (T1 + T3, approved) | `python3 -I poc/axi_uvc/scripts/slang_elab.py +incdir+<UVM>/src <UVM>/src/uvm_pkg.sv -F poc/axi_uvc/filelists/axi_poc.f --top axi_hdl_top --top axi_hvl_top` | **FAIL (UVM library)** — errors=1 warnings=2, all in UVM 1.2: `MissingTimeScale` (`uvm_pkg.sv:28`), 2 × `-Wempty-body`. **AXI sources: 0 errors, 0 warnings** (same result at `1757553`, `evidence/AXI-004/`) | `evidence/AXI-008/logs/slang_uvm.log` | `d40f727` |
 | UVM `axi_poc_test`, `axi_passive_test`, `axi_reset_test`, `axi_lite_test` | — (T4 proposed) | NOT RUN | NOT RUN | — | — |
 | UVM `axi_fault_injection_test` ×4 | — (T4 proposed) | NOT RUN | NOT RUN | — | — |
 | UVM `axi_cfg_negative_test`, `axi_width_negative_test` | — (T4 proposed) | NOT RUN | NOT RUN | — | — |
 | 4-state / drive release / X-Z checks | — | NOT RUN | NOT RUN | — | — |
 | Emulation | UNKNOWN | NOT RUN | NOT RUN | — | — |
 
-Both elaborations passed on their first run; no source change was needed. The diagnostics are classified in `evidence/AXI-004/README.md` (library / language rule and third-party idiom; no project source bug).
+Both elaborations passed on their first run at `1757553` and again after the AXI-008 fixes; slang never asked for a source change. The diagnostics are classified in `evidence/AXI-004/README.md` (library / language rule and third-party idiom; no project source bug). **A clean elaboration is not evidence of correct behaviour:** the three Manager BFM defects of AXI-008 sat in code that elaborated without a diagnostic.
 
 ## Toolchain approval request
 
@@ -208,6 +220,8 @@ The owner asked whether the branch and commit naming rules were followed. Checke
 | GIT-07 identity | **Met:** author and committer of every commit are Mahantha Deeksha S B with the owner's email; AI assistance only as `Co-Authored-By` |
 | GIT-06 pull request | Opened only after the owner's request (D-012): [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) |
 | Later commits | The commits of the second session (from `9641abe` on) keep the whole first line ≤ 72 characters |
+| GIT-06, third session | Pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) opened after the owner's "Continue" to the question about it (D-015) |
+| Third session (AXI-008) | `3697f13`, `d40f727` and the documentation commits after them: Conventional Commits with scope `axi-uvc`, first line ≤ 72, body, `Refs:` footer, owner identity. `fe6bbc2` is a merge commit with git's default subject ("Merge branch 'dev' into …"), as in `apb_uvc` `91c369f`. No force-push: the squash merge of pull request #15 was absorbed by merging `dev` into the branch (GIT-01, D-014) |
 
 ## AI handoff template (fill every session)
 
@@ -229,7 +243,47 @@ NEXT EXACT COMMAND/SMALLEST TASK:
 
 **Rule:** One model's confidence is not a validation result. If context/tokens are low, write this handoff before starting further generation.
 
-### Latest handoff — 2026-11-02 (second session: approved elaboration, pull request)
+### Latest handoff — 2026-11-17 (third session: flow review AXI-008)
+
+```text
+HANDOFF FROM: Claude (Claude Code session; same conversation, two weeks after the second session)
+REPO/BRANCH: MAHANTHADEEKSHA-SB/axi_uvc @ claude/ecstatic-allen-kiy9we. PR #15 was squash-merged into dev as
+             33f2044 (owner, 2026-11-02). The branch then has: fe6bbc2 (merge of dev, no file change), 3697f13,
+             d40f727 (Manager BFM fixes + tests), then documentation commits. NOT in dev.
+PULL REQUEST: https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16 (into dev, opened after the owner's "Continue", D-015); not merged.
+             It lists the 14 commits of #15 again plus the merge commit; the diff is the AXI-008 work only.
+EXACT COMMIT SHA: the branch HEAD (`git log -1`); evidence was produced on d40f727 (clean tree); later commits
+             change documentation only
+GIT STATUS (including uncommitted files): clean after the push
+CURRENT TASK ID: AXI-008 (flow review, owner request D-014): review done, RV-001..RV-004 fixed and unverified
+FILES CREATED/CHANGED: poc/axi_uvc/hdl/axi_manager_bfm_if.sv (reset exit: live ARESETn in
+             wait_for_reset_release(), rst_done + wait_reset_recovery(); handshakes from the sampled pins);
+             examples/axi_hdl_top.sv (pulse_reset_a/b); tests/axi_passive_reset_tests.sv (axi_reset_test: two
+             resets); tests/axi_poc_seqs.sv (axi_prompt_write_seq, axi_single_read_seq); tests/axi_hdl_smoke.sv
+             (raw-edge calls); docs: REVIEW_FEEDBACK (RV-001..RV-013), evidence/AXI-008/, DECISION_LOG (D-013,
+             D-014), AXI_PROTOCOL_CONTRACT (RST-2, RST-5, section 8), CODING_GUIDELINES (HDL-09, HDL-10, GIT-01
+             note), WORK_STATUS, SESSION_SUMMARY, both READMEs
+PROVEN WORKING (with log/command): slang 12.1.0 elaboration on d40f727: axi_hdl_smoke.f errors=0 warnings=0;
+             axi_poc.f + UVM 1.2: 0 errors and 0 warnings in the AXI sources (evidence/AXI-008/logs/)
+FAILED CHECKS (with log/command): the UVM elaboration still exits 1 on UVM 1.2's own MissingTimeScale (RISK-012,
+             needs T5)
+NOT YET RUN: every simulation. In particular the runs that decide whether the AXI-008 fixes are right:
+             axi_reset_test (RV-001, RV-002, RV-004) and the HDL smoke (RV-003); table in evidence/AXI-008/README.md
+UNRESOLVED AXI SPEC/PORT/SCHEDULING QUESTIONS: Q1-Q7; S-1..S-6 (implemented on dev, no explicit yes/no yet);
+             RV-006 (VALID check during reset vs synchronously reset DUTs), RV-007 (abort or hold an item issued
+             during reset); RISK-013; RISK-014
+OPEN REVIEW FINDING IDS: RV-001..RV-004 FIXED_UNVERIFIED; RV-005..RV-013 recorded, not changed;
+             RISK-001..006, 008, 009, 011..018
+ARCHITECTURE CONTRACT/ADR AMENDED?: no. AXI_PROTOCOL_CONTRACT RST-2 and RST-5 were made precise (assumptions for
+             owner review, Q5); ADR-002 amendment AXI-1 still PROPOSED
+NEXT EXACT COMMAND/SMALLEST TASK: owner decides (1) pull request #16 - review, then merge or ask for changes;
+             (2) RV-005..RV-013; (3) T5; (4) a simulator run. With a simulator (T4, EDA Playground): build the
+             bundles (commands in Toolchain approval request), run axi_hdl_smoke first, then
+             +UVM_TESTNAME=axi_reset_test, and record the results here and in REVIEW_FEEDBACK RV-001..RV-004.
+             In a new container repeat the T1/T3 installs before any elaboration.
+```
+
+### Earlier handoff — 2026-11-02 (second session: approved elaboration, pull request)
 
 ```text
 HANDOFF FROM: Claude (Claude Code session, continued after a context reset)
@@ -238,6 +292,7 @@ EXACT COMMIT SHA: the branch HEAD (`git log -1`); evidence was produced on 17575
              sources, filelists and scripts are unchanged since then
 GIT STATUS (including uncommitted files): clean after the push
 PULL REQUEST: https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15 (into dev, opened at the owner's request, D-012); not merged
+             [at the time of this handoff; squash-merged later the same day as 33f2044, D-013]
 CURRENT TASK ID: none in progress; AXI-001 (S-1..S-6, Q1-Q7), T5 and the pull request review wait for the owner
 FILES CREATED/CHANGED: docs/dv-architecture/evidence/AXI-003/ and AXI-004/ (READMEs + sanitized logs);
              DECISION_LOG.md (D-011, D-012, D-003 status note); WORK_STATUS.md; REVIEW_FEEDBACK.md (RISK-001,

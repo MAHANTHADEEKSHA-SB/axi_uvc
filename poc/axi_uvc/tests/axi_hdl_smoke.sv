@@ -16,8 +16,9 @@
 //
 // Checks per instance: single beats, INCR4, WRAP4, FIXED, a byte write merged
 // into a word, an unaligned INCR, directed strobes, a 32-beat INCR, write data
-// before its address, a write and a read in flight together, SLVERR, DECERR
-// and an exclusive read. Manager results, read data and every published
+// before its address, a write and a read in flight together, SLVERR, DECERR,
+// an exclusive read, and a write and a read called in the time step of a raw
+// ACLK edge (HDL-10). Manager results, read data and every published
 // transaction are checked; the monitor must publish exactly the expected
 // transactions, keep the channel order (AXI-R06/R07) and report no violation
 // or open transaction. Instance B then runs a short AXI4-Lite phase on the
@@ -399,6 +400,13 @@ module axi_hdl_smoke;
       read ('h1000, AXI_BURST_INCR,  0,    2,       0);                    // SLVERR window
       write('h2000, AXI_BURST_INCR,  0,    2,  P3,  1);                    // DECERR window
       read ('h000,  AXI_BURST_INCR,  0,    1,       2,  1'b1);             // exclusive: OKAY
+      // Calls made in the time step of an ACLK edge, before its clocking event:
+      // the VALID each one schedules is not on the bus at that edge, so the edge
+      // must not count as its handshake even where READY is already HIGH (HDL-10).
+      @(posedge mgr.ACLK);
+      write('h380,  AXI_BURST_INCR,  0,    1,  P4,  2);
+      @(posedge mgr.ACLK);
+      read ('h380,  AXI_BURST_INCR,  0,    1,       2);
 
       if (fault != AXI_FAULT_NONE) check_fault_detected();
       else                         check_monitor();
