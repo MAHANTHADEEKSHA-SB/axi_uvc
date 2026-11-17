@@ -31,6 +31,84 @@ Risk IDs follow the APB and AHB logs (`apb_uvc` at `b406d6a`, `AHB-UVC` at `73f7
 - Closure decision:
 ```
 
+## Review findings — AXI-008 flow review (2026-11-16 → 2026-11-17)
+
+The owner asked for a check of the whole flow (`DECISION_LOG.md` D-014). **This was a self-review** by the assistant that wrote the code, done by reading every source file and tracing the event scheduling by hand; it is **not** one of the independent reviews of step 3 above, and nothing was simulated. RV-001..RV-004 were fixed; RV-005..RV-013 are recorded for the owner and were **not** changed. Reviewed revision: `dev` at `33f2044e392e98345396e4e6ffdedfa871e93522` (the squash merge of PR #15).
+
+### RV-001 — The Manager takes a reset that asserts on an `ACLK` edge for a release
+- Status: FIXED_UNVERIFIED
+- Severity: MAJOR
+- Reviewers: Claude (self-review, D-014)
+- Reviewed branch and full SHA: `dev` @ `33f2044e392e98345396e4e6ffdedfa871e93522`
+- AXI protocol mode / width configuration / role: any / any / Manager
+- File(s) and line(s): `hdl/axi_manager_bfm_if.sv` `wait_for_reset_release()` (lines 211–216 at `33f2044`); `hvl/agent/axi_mgr_driver.sv` `run_phase`
+- Requirement / architecture ADR: RST-2, RST-5, AXI-R21; HDL-09
+- Failing scenario: reset asserts in the time step of an `ACLK` edge, from a process woken by a delay, while a Manager transaction is in flight. `axi_reset_test` does exactly this: `#300ns` after a time aligned to the 10 ns clock. `do_write()` is abandoned before the clocking event of that time step; the driver calls `wait_for_reset_release()` at once; its first `@(cb)` fires in the same time step with the sample taken before the edge (`ARESETn` HIGH), so it returns one edge later while `ARESETn` is LOW. The driver then takes the next item during reset (it ends `RESET_ABORTED` instead of waiting), or — the test's `after_a` — at the moment of the release, half a cycle before the first rising edge. With `addr_delay` or `data_delay[0]` = 0 (random: about two seeds in three) `AWVALID`/`WVALID` are HIGH at the first edge after reset, which AXI-R21 forbids and the three bus-A monitors report as `AXI_MON_ERR_VALID_IN_RESET`: the test fails.
+- Evidence (trace, test, compiler error, or concrete reasoning): reasoning from the scheduling rules (IEEE 1800-2017: a clocking block samples `#1step` before the edge and triggers its event in the Observed region; a process woken by a delay runs in the Active region before it). The Subordinate BFM had the same mistake, fixed in `41a153a`; the Manager's reset-release task was missed then. Not simulated.
+- Corrective action: `wait_for_reset_release()` also checks the live `ARESETn` (`while (cb.ARESETn !== 1'b1 || ARESETn !== 1'b1)`). `axi_reset_test` now issues a zero-delay write while reset 1 is still asserted and requires it to end `AXI_ST_OK`.
+- Fix commit: `3697f13`
+- Retest tool/version + exact command + log + result: slang 12.1.0 elaboration only, `evidence/AXI-008/` — HDL errors=0 warnings=0; UVM 0 diagnostics in the AXI sources. **Simulation NOT RUN.**
+- Closure decision: open until `axi_reset_test` passes on a simulator (T4).
+
+### RV-002 — The Manager BFM offers a VALID before the first edge after reset when its caller did not wait
+- Status: FIXED_UNVERIFIED
+- Severity: MAJOR
+- Reviewers: Claude (self-review, D-014)
+- Reviewed branch and full SHA: `dev` @ `33f2044e392e98345396e4e6ffdedfa871e93522`
+- AXI protocol mode / width configuration / role: any / any / Manager
+- File(s) and line(s): `hdl/axi_manager_bfm_if.sv` `do_write()` and `do_read()` entry checks (live `ARESETn` only)
+- Requirement / architecture ADR: RST-5, AXI-R21
+- Failing scenario: a reset between two items. The driver sits in `get_next_item()` and never calls `wait_for_reset_release()`, because it learns about a reset only from an abandoned item. An item that arrives after the release and before the first rising edge that samples `ARESETn` HIGH — the whole following cycle for a synchronous release — is offered at once when its start delay is 0: a VALID is HIGH at the first edge after reset. The same holds for any direct user of the BFM.
+- Evidence (trace, test, compiler error, or concrete reasoning): reasoning; the BFM relied on its caller for RST-5. Not simulated.
+- Corrective action: the BFM enforces the rule itself: `rst_done` is cleared when reset asserts and set at the first edge that samples `ARESETn` HIGH while it is still HIGH; `do_write()`/`do_read()` wait for it (`wait_reset_recovery()`), with no delay when it is already set. `axi_reset_test` adds reset 2 between items and a zero-delay write issued at the release.
+- Fix commit: `3697f13`
+- Retest tool/version + exact command + log + result: as RV-001. **Simulation NOT RUN.**
+- Closure decision: open until `axi_reset_test` passes on a simulator. Note: after such a reset the BFM guarantees the AXI minimum (first VALID after the first rising edge with `ARESETn` HIGH), not `cfg.post_reset_idle_cycles`, which only the driver applies.
+
+### RV-003 — Manager handshake taken from the drive state: a call in the time step of an `ACLK` edge loses the transaction
+- Status: FIXED_UNVERIFIED
+- Severity: MAJOR
+- Reviewers: Claude (self-review, D-014)
+- Reviewed branch and full SHA: `dev` @ `33f2044e392e98345396e4e6ffdedfa871e93522`
+- AXI protocol mode / width configuration / role: any / any (seen on a default-ready Subordinate: instance B) / Manager
+- File(s) and line(s): `hdl/axi_manager_bfm_if.sv` per-edge loops of `do_write()` and `do_read()` (`if (aw_on) if (cb.AWREADY === 1'b1) …`, likewise W, AR; `r_rdy` set at the call)
+- Requirement / architecture ADR: AXI-R02; HDL-10 ("both sampled HIGH")
+- Failing scenario: `do_write()` or `do_read()` with no start delay, called by a process that runs before the clocking event in a time step that contains an `ACLK` edge: woken by a delay that ends on the edge, by `@(posedge ACLK)`, or by an event of another clock domain. The task schedules its VALID by NBA, reaches `@(cb)` and is woken in the same time step. Its state says "VALID on" and the sampled READY is HIGH, so the edge counts as the handshake although VALID was not on the bus. The Subordinate never sees the address (or the first beat); the Manager waits for a response until the watchdog (`AXI_ST_TIMEOUT`); a write leaves a short data burst in the Subordinate that pairs with the next address, so later transactions fail too.
+- Evidence (trace, test, compiler error, or concrete reasoning): reasoning. No shipped UVM test reaches it (every call is chained from the BFM's own clocking event), but any user sequence with a delay can.
+- Corrective action: the BFM samples its own `AWVALID`, `WVALID`, `ARVALID`, `BREADY` and `RREADY` pins through the clocking block and takes a handshake only when VALID and READY were both on the bus during the cycle that ended — the rule of HDL-10 and what the monitor does. The HDL smoke adds a write and a read called after `@(posedge mgr.ACLK)`.
+- Fix commit: `d40f727`
+- Retest tool/version + exact command + log + result: as RV-001. **Simulation NOT RUN.**
+- Closure decision: open until the HDL smoke passes on a simulator.
+
+### RV-004 — Example reset generator: pulse length depends on process order
+- Status: FIXED_UNVERIFIED
+- Severity: MINOR
+- Reviewers: Claude (self-review, D-014)
+- Reviewed branch and full SHA: `dev` @ `33f2044e392e98345396e4e6ffdedfa871e93522`
+- AXI protocol mode / width configuration / role: n/a (test infrastructure)
+- File(s) and line(s): `examples/axi_hdl_top.sv` `pulse_reset_a()`, `pulse_reset_b()`
+- Requirement / architecture ADR: LANG-09
+- Failing scenario: called in the time step of a rising edge (as `axi_reset_test` does), `repeat (cycles) @(posedge aclk)` counts that edge or not, depending on whether the caller or the clock generator runs first: the reset lasts 2.5 or 3.5 cycles on different simulators.
+- Evidence (trace, test, compiler error, or concrete reasoning): reasoning.
+- Corrective action: the rising edges are counted from the first falling edge after the call.
+- Fix commit: `3697f13`
+- Retest tool/version + exact command + log + result: as RV-001. **Simulation NOT RUN.**
+- Closure decision: open until the reset events show the same cycle numbers on two simulators.
+
+### RV-005..RV-013 — recorded, not changed (owner to decide)
+
+| ID | Severity | Finding | Proposal |
+|---|---|---|---|
+| RV-005 | MINOR (design limit) | The Subordinate BFM never answers in the cycle after a request: a response becomes eligible at the edge after it was queued (`step_b()`/`step_r()`, POL-05), so the earliest B or first-R handshake is two edges after the request completed. A DUT Manager is never driven with the fastest responses, and `axi_sub_coverage.cp_latency` bin `quick` cannot be hit while the UVC faces itself | M2: start a response at the edge its request completes when it is queued in the same time step, with the Subordinate's handshakes taken from the sampled pins as in RV-003 |
+| RV-006 | MINOR (assumption RST-6, Q5) | The monitor reports `VALID_IN_RESET` at every edge sampled in reset, the first included. A DUT whose outputs are reset synchronously still shows its VALID at that first edge. IHI 0022 says the VALIDs are LOW during reset; Arm's protocol assertions check only the first cycle after the release | Owner decision: keep (strict), skip the first reset sample, or add a cfg switch |
+| RV-007 | MINOR (semantics) | An item that reaches the Manager BFM while reset is asserted ends `RESET_ABORTED` at once. When the driver did not see the reset (no item was in flight), the first item issued during it is lost; later items wait | Owner decision: document as is, or hold such an item until the release |
+| RV-008 | NOTE (inherent) | A transfer whose last handshake falls on the very edge at which reset asserts is published by the monitor (it works from samples only, by design) while the Manager item ends `RESET_ABORTED` when the reset came from a delay-woken process | Assert test resets off the active edge when a transaction may complete there; `axi_reset_test` is not affected (its cut write is mid-burst) |
+| RV-009 | SUGGESTION | `axi_coverage.cp_cache`: bin `cacheable = {[4'b0110:4'b1111]}` also counts the reserved encodings 1000, 1001, 1100 and 1101 (AXI-R19 violations) | List the six legal values; `ignore_bins` for the reserved ones |
+| RV-010 | SUGGESTION | `axi_base_agent` re-exports `ap`/`reset_ap` by assigning the monitor's port handles in `connect_phase`; they are null before | Own ports created in `build_phase` and connected to the monitor's |
+| RV-011 | SUGGESTION | `axi_mgr_driver` does not compare `resp_id` with the request ID; a wrong `BID`/`RID` is reported only by the monitor (`B_UNEXPECTED`/`R_UNEXPECTED`, open transaction) | One `uvm_error` in the driver for completed items |
+| RV-012 | SUGGESTION (M2) | `axi_poc_scoreboard` updates its memory model when a write completes; `axi_sub_mem_seq` when the request arrives. The two orders agree only while the Manager runs one item at a time (POL-02) | Order the model by request acceptance before several outstanding transactions are added |
+| RV-013 | SUGGESTION | `axi_subordinate_bfm_if`: after `set_enable(0)` and `set_enable(1)` in the middle of a run the READY registers keep their last value, so the first sample could count a handshake that was not on the bus | Take the Subordinate's handshakes from the sampled pins as well (with RV-005) |
+
 ## Open design risks (not established implementation defects)
 
 ### RISK-001 — BFM SV interface binding legality
@@ -45,6 +123,7 @@ Risk IDs follow the APB and AHB logs (`apb_uvc` at `b406d6a`, `AHB-UVC` at `73f7
 - **Status:** OPEN.
 - Do the Manager and Subordinate hold every `VALID` and payload until the handshake, keep AW and W independent, keep B after the address and last data beat and R after the address? Does the monitor reconstruct every transaction exactly once, race-free, including responses out of order across IDs, interleaved read data and write data before the address? Is the Subordinate's response timing independent of process order (eligibility at the edge after queueing, POL-05)? Does a reset that asserts exactly on an `ACLK` edge leave every output idle (fixed in `41a153a` by checking the live `ARESETn`; unverified)?
 - **Evidence required:** the HDL smoke (directed list, both instances, channel-order checks in `check_monitor()`), the four fault modes, and waveforms of a waited AW, a write with data before its address, a FIXED burst and a reset on an edge.
+- **Review 2026-11-17 (AXI-008):** three scheduling defects of exactly this kind were found by reading the code after the elaboration had passed — RV-001 and RV-002 (reset exit) and RV-003 (a call in the time step of an edge) — and fixed in `3697f13` and `d40f727`, unverified. The question above about a reset on an edge was answered wrongly for the Manager's reset-release task until then.
 
 ### RISK-003 — Lossless widths and per-instance isolation
 - **Status:** OPEN.
@@ -88,6 +167,7 @@ Risk IDs follow the APB and AHB logs (`apb_uvc` at `b406d6a`, `AHB-UVC` at `73f7
 - **Evidence required:** an approved elaboration of `filelists/axi_hdl_smoke.f` and `filelists/axi_poc.f` with 0 errors in project code, then the HDL smoke and the seven UVM tests passing with logs and SHA.
 - **Evidence 2026-11-02 (approved T1 + T3, D-011, commit `1757553`, `evidence/AXI-003/`, `evidence/AXI-004/`):** first elaboration ever of the AXI sources: the HDL smoke gives errors=0 warnings=0; the full UVM POC gives **0 errors and 0 warnings in project code** — no source change was needed, every item of the *First-compile watch list* was accepted. The UVM run exits with 1 error and 2 warnings inside UVM 1.2 (RISK-012).
 - **Status:** OPEN until the UVM run is clean (RISK-012) and the HDL smoke and the seven UVM tests have run on a simulator.
+- **Review 2026-11-17 (AXI-008):** a clean elaboration did not mean correct behaviour: RV-001..RV-003 are run-time defects in code that elaborated without a diagnostic. `axi_reset_test` would very likely have failed on its first simulation. Simulation is the missing evidence, not more elaboration.
 
 ### RISK-012 — UVM 1.2 has no `timescale; mixing is an error under slang
 - **Status:** OPEN; **observed 2026-11-02** (`evidence/AXI-004/`); T5 not approved (D-011 approved T1 and T3 only).
@@ -129,4 +209,4 @@ Risk IDs follow the APB and AHB logs (`apb_uvc` at `b406d6a`, `AHB-UVC` at `73f7
 
 ## Closed findings
 
-_None. The AXI sources are elaborated by slang (2026-11-02) but not simulated; elaboration alone closes no risk._
+_None. The AXI sources are elaborated by slang but not simulated; elaboration alone closes no risk, and RV-001..RV-004 stay FIXED_UNVERIFIED until a simulator has run their tests._
