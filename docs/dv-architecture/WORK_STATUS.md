@@ -2,14 +2,14 @@
 
 **Checkpoint date:** 2026-11-17 (end of the third session: review of the whole flow at the owner's request, D-014, with fixes; resume in a new session from *Resume here* — `SESSION_SUMMARY.md` has the one-page overview and a new-chat start prompt)
 **Repository:** https://github.com/MAHANTHADEEKSHA-SB/axi_uvc
-**Branch:** `claude/ecstatic-allen-kiy9we`, created from **`dev` at `c8db5daf5275915ddc80c3933ae55cb11acae95a`** (the merge of PR #14) as the owner asked (D-001, D-010). Pull request [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) was **squash-merged into `dev` as `33f2044e392e98345396e4e6ffdedfa871e93522`** by the owner on 2026-11-02 (D-013). The branch continues after it: `dev` merged back in (`fe6bbc2`, no file change), then the AXI-008 review commits (`3697f13`, `d40f727` and the documentation commits after them). **These follow-up commits are not in `dev` and no pull request is open for them** (GIT-06: the owner has not asked for one).
+**Branch:** `claude/ecstatic-allen-kiy9we`, created from **`dev` at `c8db5daf5275915ddc80c3933ae55cb11acae95a`** (the merge of PR #14) as the owner asked (D-001, D-010). Pull request [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) was **squash-merged into `dev` as `33f2044e392e98345396e4e6ffdedfa871e93522`** by the owner on 2026-11-02 (D-013). The branch continues after it: `dev` merged back in (`fe6bbc2`, no file change), then the AXI-008 review commits (`3697f13`, `d40f727` and the documentation commits after them). **These follow-up commits are not in `dev`; pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) into `dev` is open for them** (D-015), not merged. Its commit list repeats the 14 commits of #15 (squash-merged, so `dev` does not contain them) and the merge commit; its diff is only the AXI-008 work.
 **Template sources:** `https://github.com/MAHANTHADEEKSHA-SB/apb_uvc` `dev` at `b406d6a9c75aca158671f304257ce9a5ba346710`, and `https://github.com/MAHANTHADEEKSHA-SB/AHB-UVC` `dev` at `73f7d33` (merge of its PR #8; the AHB adaptation of the APB templates)
 **Current commit SHA:** read actual `git rev-parse HEAD`; this file cannot self-reference its own commit.
 **Working tree:** UNKNOWN for local clones; verify before changing code.
 **Phase:** M1 of the AXI UVC is on `dev` (HDL, HVL API, adapters, UVM agents of both roles, HVL top, HDL smoke, seven UVM tests; governance docs). **Elaborated with the owner-approved slang 12.1.0 + UVM 1.2 (T1/T3, D-011) with 0 diagnostics in the AXI sources; nothing simulated.** A review of the whole flow (AXI-008) found three run-time defects in the Manager BFM by reading the code — reset exit and handshake detection, RV-001..RV-003 — which are fixed on the branch and **unverified**.
 **Tool results:** slang 12.1.0 at `d40f727` (clean tree, after the AXI-008 fixes): HDL smoke **PASS** errors=0 warnings=0; UVM POC errors=1 warnings=2, **all inside UVM 1.2** — `MissingTimeScale`, RISK-012 — and 0 in the AXI sources (`evidence/AXI-008/`; the same results as at `1757553`, `evidence/AXI-003/`, `AXI-004/`). No simulation. See *Validation evidence*.
 **Next implementer:** Claude or another authorized model/engineer.
-**Active task:** none in progress. Next: the owner decides whether the AXI-008 commits go to `dev` (a pull request on request), reads RV-005..RV-013 (`REVIEW_FEEDBACK.md`), decides S-1..S-6, Q1–Q7 and T5, and runs the simulation flows (T4) — **the run of `axi_reset_test` and of the HDL smoke is what can confirm or refute the AXI-008 fixes**.
+**Active task:** none in progress. Next: the owner reviews pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) (the AXI-008 commits), reads RV-005..RV-013 (`REVIEW_FEEDBACK.md`), decides S-1..S-6, Q1–Q7 and T5, and runs the simulation flows (T4) — **the run of `axi_reset_test` and of the HDL smoke is what can confirm or refute the AXI-008 fixes**.
 **Spec reference:** Arm AMBA AXI Protocol Specification, ARM IHI 0022 (Manager/Subordinate terminology since Issue H.b; latest issues K, September 2023, and L, August 2025). The PDF is Arm copyright and is not committed here; citations are by section title (RISK-013).
 
 > Do not trust this status without comparing it to the real files, current Git SHA, and logs. Any difference must be reconciled explicitly.
@@ -166,7 +166,7 @@ Classify any failure as **source bug**, **standard violation** or **tool limitat
 - [~] **AXI-004 — HVL types/proxies/agents + compile:** elaboration with UVM 1.2 gives **0 diagnostics in the AXI sources**; the run fails on UVM 1.2's own missing time scale (RISK-012) until T5 is decided (`evidence/AXI-004/`).
 - [~] **AXI-005 — Run AXI POC:** eight flows written (*Tests available*); NOT RUN. The owner can run them on EDA Playground (T4). **Highest value now:** `axi_reset_test` and the HDL smoke, which exercise the AXI-008 fixes.
 - [ ] **AXI-006 — Independent reviews:** ChatGPT and Gemini review the same pinned commit, record findings and rerun failing tests; a run against an independent AXI model (RISK-016).
-- [~] **AXI-008 — Flow review (owner request D-014):** done by reading; RV-001..RV-004 fixed on the branch (`3697f13`, `d40f727`), re-elaborated (`evidence/AXI-008/`), **not simulated**; RV-005..RV-013 wait for the owner. Not in `dev`: a pull request on the owner's request.
+- [~] **AXI-008 — Flow review (owner request D-014):** done by reading; RV-001..RV-004 fixed on the branch (`3697f13`, `d40f727`), re-elaborated (`evidence/AXI-008/`), **not simulated**; RV-005..RV-013 wait for the owner. Not in `dev`: pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) is open (D-015).
 - [ ] **AXI-007 — Spec citation check (RISK-013):** a reviewer with IHI 0022 confirms section titles/numbers and the wording of AXI-R04/R23/R24/R25.
 
 ## Toolchain (this container, 2026-11-02; still present on 2026-11-17)
@@ -220,6 +220,7 @@ The owner asked whether the branch and commit naming rules were followed. Checke
 | GIT-07 identity | **Met:** author and committer of every commit are Mahantha Deeksha S B with the owner's email; AI assistance only as `Co-Authored-By` |
 | GIT-06 pull request | Opened only after the owner's request (D-012): [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) |
 | Later commits | The commits of the second session (from `9641abe` on) keep the whole first line ≤ 72 characters |
+| GIT-06, third session | Pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) opened after the owner's "Continue" to the question about it (D-015) |
 | Third session (AXI-008) | `3697f13`, `d40f727` and the documentation commits after them: Conventional Commits with scope `axi-uvc`, first line ≤ 72, body, `Refs:` footer, owner identity. `fe6bbc2` is a merge commit with git's default subject ("Merge branch 'dev' into …"), as in `apb_uvc` `91c369f`. No force-push: the squash merge of pull request #15 was absorbed by merging `dev` into the branch (GIT-01, D-014) |
 
 ## AI handoff template (fill every session)
@@ -248,7 +249,9 @@ NEXT EXACT COMMAND/SMALLEST TASK:
 HANDOFF FROM: Claude (Claude Code session; same conversation, two weeks after the second session)
 REPO/BRANCH: MAHANTHADEEKSHA-SB/axi_uvc @ claude/ecstatic-allen-kiy9we. PR #15 was squash-merged into dev as
              33f2044 (owner, 2026-11-02). The branch then has: fe6bbc2 (merge of dev, no file change), 3697f13,
-             d40f727 (Manager BFM fixes + tests), then documentation commits. NOT in dev; no pull request open.
+             d40f727 (Manager BFM fixes + tests), then documentation commits. NOT in dev.
+PULL REQUEST: https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16 (into dev, opened after the owner's "Continue", D-015); not merged.
+             It lists the 14 commits of #15 again plus the merge commit; the diff is the AXI-008 work only.
 EXACT COMMIT SHA: the branch HEAD (`git log -1`); evidence was produced on d40f727 (clean tree); later commits
              change documentation only
 GIT STATUS (including uncommitted files): clean after the push
@@ -273,7 +276,7 @@ OPEN REVIEW FINDING IDS: RV-001..RV-004 FIXED_UNVERIFIED; RV-005..RV-013 recorde
              RISK-001..006, 008, 009, 011..018
 ARCHITECTURE CONTRACT/ADR AMENDED?: no. AXI_PROTOCOL_CONTRACT RST-2 and RST-5 were made precise (assumptions for
              owner review, Q5); ADR-002 amendment AXI-1 still PROPOSED
-NEXT EXACT COMMAND/SMALLEST TASK: owner decides (1) whether these commits go to dev - say "create a PR to dev";
+NEXT EXACT COMMAND/SMALLEST TASK: owner decides (1) pull request #16 - review, then merge or ask for changes;
              (2) RV-005..RV-013; (3) T5; (4) a simulator run. With a simulator (T4, EDA Playground): build the
              bundles (commands in Toolchain approval request), run axi_hdl_smoke first, then
              +UVM_TESTNAME=axi_reset_test, and record the results here and in REVIEW_FEEDBACK RV-001..RV-004.

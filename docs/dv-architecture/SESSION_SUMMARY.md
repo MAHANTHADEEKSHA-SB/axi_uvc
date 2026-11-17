@@ -11,7 +11,7 @@
 | Item | Value |
 |---|---|
 | AXI repository | https://github.com/MAHANTHADEEKSHA-SB/axi_uvc |
-| Work branch | `claude/ecstatic-allen-kiy9we` (session-designated, D-010). After the merge of PR #15 it carries `fe6bbc2` (merge of `dev`, no file change) and the AXI-008 review commits `3697f13`, `d40f727` plus documentation commits — **not in `dev`, no pull request open** |
+| Work branch | `claude/ecstatic-allen-kiy9we` (session-designated, D-010). After the merge of PR #15 it carries `fe6bbc2` (merge of `dev`, no file change) and the AXI-008 review commits `3697f13`, `d40f727` plus documentation commits — **not in `dev`; pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) is open for them** (D-015) |
 | Pull request | [#15](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/15) **squash-merged into `dev` as `33f2044`** by the owner on 2026-11-02 (D-013). The SHAs cited in these documents (`1757553`, `41a153a`, …) are on the work branch, not in `dev`'s history |
 | Approved tools | T1 slang via pyslang 12.1.0 and T3 UVM 1.2 mirror (D-011), elaboration only; reinstall in each new container with the commands in `WORK_STATUS.md`; T5 not approved |
 | `main` | older flat AXI code (`3348717`); behind `dev`; still the repository's default branch |
@@ -65,7 +65,7 @@
 2. **No simulator/compiler/elaborator/lint run, and no tool option, without explicit owner approval** of tool, version and commands (D-003). **Approved: T1 (pyslang 12.1.0) and T3 (UVM 1.2 mirror) with their exact commands only (D-011)**; T5 is not approved. General freedom to change things (D-014) is not a tool approval. Mark everything else **NOT RUN**.
 3. **No tool-specific workarounds** — generic IEEE 1800-2017 SystemVerilog/UVM only (D-002).
 4. The AXI decisions A-1..A-11 stay in force (D-009); `docs/ARCHITECTURE_DECISIONS.md` is append-only; root `scripts/` untouched.
-5. No force-push, no merge into `dev`/`main`, no PR unless the owner asks (PR #15 was asked, D-012; none is asked for the AXI-008 commits yet); when `dev` moves — also by a squash merge — bring it in with a merge commit (D-014); Conventional Commits `<type>(axi-uvc): …`, whole first line ≤ 72 characters.
+5. No force-push, no merge into `dev`/`main`, no PR unless the owner asks (PR #15 was asked, D-012; PR #16 followed the owner's "Continue", D-015); when `dev` moves — also by a squash merge — bring it in with a merge commit (D-014); Conventional Commits `<type>(axi-uvc): …`, whole first line ≤ 72 characters.
 6. Record owner decisions in `DECISION_LOG.md` immediately; keep `WORK_STATUS.md` and this summary current before a session ends (D-008).
 
 ## 4. AXI UVC cheat-sheet
@@ -99,7 +99,7 @@
 
 ## 5. Next steps (in order)
 
-1. **Owner decisions:** whether the AXI-008 commits go to `dev` (ask for a pull request); RV-005..RV-013 (`REVIEW_FEEDBACK.md`); an explicit yes or no on S-1..S-6 (`DECISION_LOG.md`) and Q1–Q7 (`AXI_PROTOCOL_CONTRACT.md` §12); **T5** (slang `--timescale 1ns/1ps`, RISK-012).
+1. **Owner decisions:** pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) with the AXI-008 commits (review, then merge or ask for changes); RV-005..RV-013 (`REVIEW_FEEDBACK.md`); an explicit yes or no on S-1..S-6 (`DECISION_LOG.md`) and Q1–Q7 (`AXI_PROTOCOL_CONTRACT.md` §12); **T5** (slang `--timescale 1ns/1ps`, RISK-012).
 2. **Simulate** (owner, EDA Playground, T4): the HDL smoke, then `axi_reset_test`, then the other six UVM tests. This is the first real check of the BFMs and of the AXI-008 fixes; record every result in `WORK_STATUS.md` and RV-001..RV-004.
 3. If T5 is approved: in a new container repeat the T1/T3 installs (`WORK_STATUS.md` *Toolchain approval request*), run the T1 UVM command with `--timescale 1ns/1ps`, and store the log under `docs/dv-architecture/evidence/`.
 4. One run against an independent AXI model (RISK-016); spec citation check against IHI 0022 (RISK-013).
@@ -112,7 +112,8 @@
 Continue the AXI UVC work in MAHANTHADEEKSHA-SB/axi_uvc (templates: MAHANTHADEEKSHA-SB/apb_uvc and
 MAHANTHADEEKSHA-SB/AHB-UVC).
 1. git fetch origin; PR #15 is merged in dev (33f2044). The AXI-008 review commits are on
-   claude/ecstatic-allen-kiy9we and may not be in dev yet (git log origin/dev..origin/claude/ecstatic-allen-kiy9we).
+   claude/ecstatic-allen-kiy9we, proposed for dev in PR #16; check whether it was merged
+   (git log origin/dev..origin/claude/ecstatic-allen-kiy9we).
    Start new work on that branch or on a feature branch from dev (or the branch this session designates). Set the
    commit identity first:
    git config user.name "Mahantha Deeksha S B" && git config user.email "$(git log origin/dev --author='Mahantha Deeksha S B' --format='%ae' -1)"
@@ -124,7 +125,7 @@ MAHANTHADEEKSHA-SB/AHB-UVC).
    tool-specific workarounds; root scripts/ untouched; docs/ARCHITECTURE_DECISIONS.md append-only; mark everything
    not executed as NOT RUN; follow CODING_GUIDELINES.md and its checklist.
 4. Next task: <write it here, e.g. "I ran axi_reset_test on EDA Playground, here is the log" or
-   "create a PR to dev for the AXI-008 commits">.
+   "PR #16 is merged, start M2 with RV-005">.
 ```
 
 ## 7. Session log (append one row per session)
@@ -133,4 +134,4 @@ MAHANTHADEEKSHA-SB/AHB-UVC).
 |---|---|---|---|
 | 2026-11-01 → 2026-11-02 | `claude/ecstatic-allen-kiy9we` (from `dev` `c8db5da`) | Empty scaffold of PR #14 refactored onto the APB/AHB architecture; AXI UVC M1 with both roles written; governance docs adapted; nothing compiled (no tool approved) | `1757553` |
 | 2026-11-02 | same branch | T1/T3 approved (D-011): first slang elaboration — HDL smoke 0/0, UVM POC 0 diagnostics in the AXI sources, 1 error in UVM 1.2 (RISK-012); commit audit; pull request into `dev` (D-012) | `c158dd9`; squash-merged into `dev` as `33f2044` (D-013) |
-| 2026-11-16 → 2026-11-17 | same branch, `dev` merged in (`fe6bbc2`) | Flow review at the owner's request (D-014, AXI-008): three Manager BFM defects found by reading and fixed (reset exit, handshake detection), tests added, re-elaborated; RV-005..RV-013 recorded for the owner; nothing simulated | branch HEAD (not in `dev`, no PR) |
+| 2026-11-16 → 2026-11-17 | same branch, `dev` merged in (`fe6bbc2`) | Flow review at the owner's request (D-014, AXI-008): three Manager BFM defects found by reading and fixed (reset exit, handshake detection), tests added, re-elaborated; RV-005..RV-013 recorded for the owner; nothing simulated; pull request [#16](https://github.com/MAHANTHADEEKSHA-SB/axi_uvc/pull/16) opened (D-015) | branch HEAD (not in `dev`) |
