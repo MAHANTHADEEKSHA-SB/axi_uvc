@@ -18,7 +18,8 @@
 //   AXI-R08..R15  burst shape, strobes, WLAST (the drive adapter checks the
 //                 rest of the request before calling these tasks)
 //   AXI-R24       AXI4-Lite: absent signals driven to 0 (POL-03)
-//   RST-1..RST-3, RST-5  reset behaviour
+//   RST-1..RST-3, RST-5  reset behaviour; nothing is offered before an ACLK
+//                 edge has sampled ARESETn HIGH (AXI-R21), whoever calls
 //   section 8     drive release: outputs are 'z until set_enable(1)
 // User signals exist as ports but are driven to 0 until milestone M2.
 // Compile after axi_bfm_pkg.
@@ -125,6 +126,7 @@ interface axi_manager_bfm_if
   bit            drive_en     = 1'b0;  // 0: every output released to 'z (passive-safe)
   bit            wr_in_flight = 1'b0;  // a do_write() call owns AW/W/B
   bit            rd_in_flight = 1'b0;  // a do_read() call owns AR/R
+  bit            rst_done     = 1'b0;  // an ACLK edge sampled ARESETn HIGH since reset (RST-5)
   axi_features_t features     = axi_default_features();
   axi_fault_e    fault        = AXI_FAULT_NONE;
 
@@ -207,11 +209,15 @@ interface axi_manager_bfm_if
     fault = f;
   endfunction
 
-  // RST-5: return after ARESETn is sampled HIGH, plus idle_cycles more edges
+  // RST-2/RST-5: return once an ACLK edge has sampled ARESETn HIGH while it is
+  // still HIGH, plus idle_cycles more edges. The live value is checked as well as
+  // the sampled one (HDL-09): a reset that asserts in the very time step of an
+  // edge is still sampled HIGH at that edge and must not be taken for a release.
   task automatic wait_for_reset_release(input int unsigned idle_cycles = 1);
     do
       @(cb);
-    while (cb.ARESETn !== 1'b1);
+    while (cb.ARESETn !== 1'b1 || ARESETn !== 1'b1);
+    rst_done = 1'b1;
     repeat (idle_cycles) @(cb);
   endtask
 
@@ -225,6 +231,9 @@ interface axi_manager_bfm_if
   // scheduling idle outputs; a following call in the same time step overrides
   // them. Reports the BID/BRESP, the beats accepted and the cycles each VALID
   // waited for its READY (AWVALID, each WVALID, and BVALID waiting for BREADY).
+  // The call may arrive at any time. In reset it ends at once with
+  // AXI_ST_RESET_ABORTED; between a reset release and the first ACLK edge that
+  // samples ARESETn HIGH it waits for that edge before offering anything (RST-5).
   task automatic do_write(
     input  logic [ID_W_WIDTH-1:0]   id,
     input  logic [ADDR_WIDTH-1:0]   addr,
@@ -298,6 +307,7 @@ interface axi_manager_bfm_if
     fork begin : guard  // isolates "disable fork" from the caller's processes
       fork
         begin : transfer
+          wait_reset_recovery();  // RST-5; reset_watch abandons it on a new reset
           aw_on     = 1'b0;
           aw_done   = 1'b0;
           aw_left   = addr_delay;
@@ -450,7 +460,8 @@ interface axi_manager_bfm_if
   // resp_ready_delay cycles and falls after each beat. The read ends after len
   // beats; RLAST is not used for framing (the monitor checks it, AXI-R15).
   // Returns at the edge of the last R handshake. Per beat: RDATA and RRESP
-  // (4-state, verbatim) and the cycles RVALID waited for RREADY.
+  // (4-state, verbatim) and the cycles RVALID waited for RREADY. Call timing and
+  // reset behaviour as for do_write().
   task automatic do_read(
     input  logic [ID_R_WIDTH-1:0]   id,
     input  logic [ADDR_WIDTH-1:0]   addr,
@@ -514,6 +525,7 @@ interface axi_manager_bfm_if
     fork begin : guard  // isolates "disable fork" from the caller's processes
       fork
         begin : transfer
+          wait_reset_recovery();  // RST-5; reset_watch abandons it on a new reset
           ar_on     = 1'b0;
           ar_done   = 1'b0;
           ar_left   = addr_delay;
@@ -607,6 +619,19 @@ interface axi_manager_bfm_if
   // ---------------------------------------------------------------------------
   // Internal helpers
   // ---------------------------------------------------------------------------
+
+  // RST-5 (AXI-R21): the earliest point a Manager may offer a VALID after reset
+  // is an ACLK edge at which ARESETn is HIGH. A transaction that starts between
+  // the release and that edge waits for it here, whoever the caller is (a
+  // driver that was idle during the reset never called wait_for_reset_release()).
+  // The loop decides from its own sample, so it does not depend on the order of
+  // the bookkeeping process below. No time passes when rst_done is already set.
+  task automatic wait_reset_recovery();
+    while (!rst_done) begin
+      @(cb);
+      if (cb.ARESETn === 1'b1 && ARESETn === 1'b1) rst_done = 1'b1;
+    end
+  endtask
 
   // 1 when the burst shape is legal and fits this bus: a known AxBURST with a
   // length legal for it (AXI-R08/R10), AxSIZE no wider than the bus (AXI-R09), and
@@ -763,9 +788,19 @@ interface axi_manager_bfm_if
     rready_q <= 1'b0;
   endtask
 
-  // RST-1/RST-2: every VALID and READY LOW as soon as reset asserts (or goes X/Z)
+  // RST-5 bookkeeping without a caller: rst_done is set at the first ACLK edge
+  // that samples ARESETn HIGH while it is still HIGH, so a transaction long
+  // after the release starts at once.
+  initial forever begin
+    @(cb);
+    if (cb.ARESETn === 1'b1 && ARESETn === 1'b1) rst_done = 1'b1;
+  end
+
+  // RST-1/RST-2: every VALID and READY LOW as soon as reset asserts (or goes
+  // X/Z); RST-5: a new release must be sampled before anything is offered again.
   always @(ARESETn)
     if (ARESETn !== 1'b1) begin
+      rst_done = 1'b0;
       idle_write();
       idle_read();
     end

@@ -42,10 +42,15 @@ module axi_hdl_top;
     aresetn_b = 1'b1;
   end
 
-  // Mid-simulation reset for tests (RST-1..RST-4, RST-8): assert now
-  // (asynchronously), release on a falling edge after `cycles` rising edges.
+  // Mid-simulation reset for tests (RST-1..RST-5, RST-8): assert now
+  // (asynchronously, at whatever time the caller chose), hold it over at least
+  // `cycles` rising edges and release on a falling edge (AXI-R22). The rising
+  // edges are counted from the first falling edge after the call, so the length
+  // does not depend on which process runs first when the call falls in the time
+  // step of a rising edge.
   task automatic pulse_reset_a(input int unsigned cycles);
     aresetn_a = 1'b0;
+    @(negedge aclk_a);
     repeat (cycles) @(posedge aclk_a);
     @(negedge aclk_a) aresetn_a = 1'b1;
   endtask
@@ -53,6 +58,7 @@ module axi_hdl_top;
   // Same for instance B.
   task automatic pulse_reset_b(input int unsigned cycles);
     aresetn_b = 1'b0;
+    @(negedge aclk_b);
     repeat (cycles) @(posedge aclk_b);
     @(negedge aclk_b) aresetn_b = 1'b1;
   endtask
