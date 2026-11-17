@@ -20,7 +20,8 @@
 //   AXI-R24       AXI4-Lite: absent signals driven to 0 (POL-03)
 //   RST-1..RST-3, RST-5  reset behaviour; nothing is offered before an ACLK
 //                 edge has sampled ARESETn HIGH (AXI-R21), whoever calls
-//   section 8     drive release: outputs are 'z until set_enable(1)
+//   section 8     drive release: outputs are 'z until set_enable(1); a call
+//                 may arrive at any time, also in the time step of an edge
 // User signals exist as ports but are driven to 0 until milestone M2.
 // Compile after axi_bfm_pkg.
 // -----------------------------------------------------------------------------
@@ -165,11 +166,17 @@ interface axi_manager_bfm_if
   assign ARUSER   = drive_en ? '0 : 'z;
 
   // Inputs are sampled 1step before each ACLK rising edge: the values the
-  // Subordinate presented during that cycle (HDL-05). Manager outputs are not
-  // driven through this block; the tasks below update them with NBAs.
+  // Subordinate presented during that cycle (HDL-05). The Manager's own VALID
+  // and READY pins are sampled the same way, as they were on the bus during that
+  // cycle: a handshake is taken from the sampled pins of both sides (HDL-10),
+  // never from the drive state alone. A call made in the time step of an ACLK
+  // edge schedules its VALID after that edge, so the edge cannot count for it.
+  // Manager outputs are not driven through this block; the tasks below update
+  // them with NBAs.
   clocking cb @(posedge ACLK);
     default input #1step;
     input ARESETn, AWREADY, WREADY, BID, BRESP, BVALID, ARREADY, RID, RDATA, RRESP, RVALID;
+    input AWVALID, WVALID, BREADY, ARVALID, RREADY;
   endclocking
 
   // ---------------------------------------------------------------------------
@@ -338,8 +345,9 @@ interface axi_manager_bfm_if
             progress = 1'b0;
 
             // Write address channel: AWVALID and the payload stay unchanged until
-            // the handshake (AXI-R03/R04).
-            if (aw_on) begin
+            // the handshake (AXI-R03/R04). The sampled AWVALID says the address was
+            // on the bus during the cycle that just ended (HDL-10).
+            if (aw_on && cb.AWVALID === 1'b1) begin
               if (cb.AWREADY === 1'b1) begin
                 idle_aw();
                 aw_on    = 1'b0;
@@ -353,7 +361,7 @@ interface axi_manager_bfm_if
                   faulted   = 1'b1;
                 end
               end
-            end else if (!aw_done) begin
+            end else if (!aw_on && !aw_done) begin
               aw_left--;
               if (aw_left == 0) begin
                 drive_aw(id, addr, len, size, burst, lock, cache, prot, qos, region, lite);
@@ -361,12 +369,13 @@ interface axi_manager_bfm_if
               end
             end
 
-            // Write data channel: beat w_idx is held until WREADY (AXI-R03/R04).
+            // Write data channel: beat w_idx is held until WREADY (AXI-R03/R04); the
+            // sampled WVALID says it was on the bus during the cycle that just ended.
             if (w_dropped) begin
               wvalid_q <= 1'b1;  // fault mode 2: the dropped beat comes back unchanged
               w_dropped = 1'b0;
               w_on      = 1'b1;
-            end else if (w_on) begin
+            end else if (w_on && cb.WVALID === 1'b1) begin
               if (cb.WREADY === 1'b1) begin
                 beats_done++;
                 progress = 1'b1;
@@ -395,7 +404,7 @@ interface axi_manager_bfm_if
                   faulted   = 1'b1;
                 end
               end
-            end else if (!w_done) begin
+            end else if (!w_on && !w_done) begin
               w_left--;
               if (w_left == 0) begin
                 strb = beat_strobe(wstrb[w_idx], addr, size, burst, len, w_idx,
@@ -411,7 +420,7 @@ interface axi_manager_bfm_if
             // raised from the edge where both are done.
             if (b_phase) begin
               if (cb.BVALID === 1'b1) begin
-                if (b_rdy) begin
+                if (b_rdy && cb.BREADY === 1'b1) begin
                   bid       = cb.BID;   // 4-state, verbatim
                   bresp     = cb.BRESP;
                   bready_q <= 1'b0;
@@ -542,8 +551,9 @@ interface axi_manager_bfm_if
             @(cb);
             progress = 1'b0;
 
-            // Read address channel (AXI-R03/R04)
-            if (ar_on) begin
+            // Read address channel (AXI-R03/R04); the sampled ARVALID says the
+            // address was on the bus during the cycle that just ended (HDL-10).
+            if (ar_on && cb.ARVALID === 1'b1) begin
               if (cb.ARREADY === 1'b1) begin
                 idle_ar();
                 ar_on    = 1'b0;
@@ -557,7 +567,7 @@ interface axi_manager_bfm_if
                   faulted   = 1'b1;
                 end
               end
-            end else if (!ar_done) begin
+            end else if (!ar_on && !ar_done) begin
               ar_left--;
               if (ar_left == 0) begin
                 drive_ar(id, addr, len, size, burst, lock, cache, prot, qos, region, lite);
@@ -565,10 +575,10 @@ interface axi_manager_bfm_if
               end
             end
 
-            // Read data channel: a beat transfers at an edge where RVALID is HIGH
-            // while RREADY was HIGH (AXI-R02).
+            // Read data channel: a beat transfers at an edge where RVALID and
+            // RREADY are both sampled HIGH (AXI-R02, HDL-10).
             if (cb.RVALID === 1'b1) begin
-              if (r_rdy) begin
+              if (r_rdy && cb.RREADY === 1'b1) begin
                 if (beats_done == 0) rid = cb.RID;
                 rdata[beats_done] = cb.RDATA;  // 4-state, verbatim
                 rresp[beats_done] = cb.RRESP;
